@@ -1,0 +1,313 @@
+/* Guard-Specific Styles */
+
+/* Scanner & Search Styles */
+.scanner-area {
+    border: 2px dashed var(--glass-border);
+    border-radius: 20px;
+    padding: 40px;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.02);
+    transition: all 0.3s ease;
+    margin-bottom: 30px;
+}
+
+.scanner-area:hover {
+    border-color: var(--sage-green);
+    background: rgba(64, 145, 108, 0.05);
+}
+
+.search-container {
+    position: relative;
+    width: 100%;
+    margin-bottom: 30px;
+}
+
+.search-input {
+    width: 100%;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    padding: 15px 25px;
+    border-radius: 50px;
+    color: white;
+    font-size: 1rem;
+    box-sizing: border-box;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+.search-input:focus {
+    border-color: var(--sage-green);
+    box-shadow: 0 0 15px rgba(64, 145, 108, 0.2);
+}
+
+.student-result-card {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    gap: 30px;
+    animation: slideUp 0.5s ease forwards;
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.violation-form-card {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 20px;
+    padding: 25px;
+    border: 1px solid var(--glass-border);
+}
+
+.form-select, .form-textarea {
+    width: 100%;
+    background: rgba(0,0,0,0.2);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 12px;
+    color: white;
+    margin-top: 8px;
+    font-family: inherit;
+}
+
+.form-textarea {
+    height: 100px;
+    resize: none;
+}
+
+/* Live Search Dropdown */
+.search-results-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background: var(--bg-dark);
+    border: 1px solid var(--glass-border);
+    border-radius: 15px;
+    margin-top: 10px;
+    z-index: 2000;
+    max-height: 300px;
+    overflow-y: auto;
+    display: none;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+.search-result-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 12px 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.search-result-item:last-child {
+    border-bottom: none;
+}
+
+.search-result-item:hover {
+    background: rgba(64, 145, 108, 0.2);
+}
+
+.result-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid var(--sage-green);
+}
+
+.result-info h4 {
+    margin: 0;
+    font-size: 0.95rem;
+    color: white;
+}
+
+.result-info p {
+    margin: 0;
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.5);
+}
+
+/* Html5Qrcode Overrides */
+#reader {
+    border: none !important;
+}
+
+#reader video {
+    border-radius: 15px;
+    object-fit: cover;
+}
+
+#reader__dashboard_section_swaplink {
+    display: none !important;
+}
+
+#reader__camera_selection {
+    background: rgba(0,0,0,0.2);
+    border: 1px solid var(--glass-border);
+    color: white;
+    padding: 5px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+#reader__status_span {
+    font-size: 0.8rem !important;
+    color: var(--sage-green) !important;
+}
+
+/* UI Helpers & Components */
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.scanner-icon {
+    font-size: 3rem;
+    margin-bottom: 15px;
+}
+
+.scanner-desc {
+    color: rgba(255,255,255,0.5);
+    font-size: 0.9rem;
+}
+
+.reader-container {
+    width: 100%;
+    max-width: 400px;
+    margin: 20px auto;
+    display: none;
+    border-radius: 15px;
+    overflow: hidden;
+    border: 2px solid var(--sage-green);
+}
+
+.scanner-controls {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.manual-search-divider {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.manual-search-divider span {
+    background: var(--bg-dark);
+    padding: 0 20px;
+    position: relative;
+    z-index: 1;
+    color: rgba(255,255,255,0.3);
+}
+
+.manual-search-divider hr {
+    border: none;
+    border-top: 1px solid var(--glass-border);
+    margin-top: -10px;
+}
+
+.search-btn-absolute {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--sage-green);
+    border: none;
+    color: white;
+    padding: 8px 25px;
+    border-radius: 40px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+/* Student Info Display */
+.student-info-header {
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--glass-border);
+    padding-bottom: 10px;
+}
+
+.profile-img-large {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 3px solid var(--sage-green);
+    margin-bottom: 15px;
+}
+
+.info-item-box {
+    background: rgba(255,255,255,0.03);
+    padding: 12px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+}
+
+.info-item-label {
+    display: block;
+    font-size: 0.7rem;
+    color: rgba(255,255,255,0.5);
+    text-transform: uppercase;
+}
+
+.info-item-value {
+    font-weight: 500;
+}
+
+/* Profile Page Styles */
+.profile-photo-container {
+    cursor: pointer;
+    width: 150px;
+    height: 150px;
+    margin: 0 auto;
+    position: relative;
+}
+
+.profile-photo-img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid var(--sage-green);
+    box-shadow: 0 0 20px rgba(64, 145, 108, 0.3);
+}
+
+.photo-edit-badge {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    background: var(--sage-green);
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    border: 2px solid var(--white);
+}
+
+.profile-name-section {
+    margin-top: 20px;
+}
+
+.profile-bio-text {
+    margin-top: 20px;
+    color: rgba(255,255,255,0.7);
+    font-style: italic;
+    line-height: 1.6;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.profile-actions-center {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 30px;
+}
