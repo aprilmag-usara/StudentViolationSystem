@@ -33,12 +33,12 @@ class OSASController extends BaseController {
             
             // Notify the guard
             $msg = "OSAS has reviewed the violation for $studentName and it is now being processed.";
-            $this->userModel->createNotification($guardId, $msg);
+            $this->userModel->createNotification($guardId, $msg, $violationId);
             
             // Notify the student
             $studentUserId = $_POST['student_user_id'];
             $notifMsg = "OSAS has assigned a sanction for your violation: " . ($sanction ? $sanction : "Under review") . ". Click to view your records.";
-            $this->userModel->createNotification($studentUserId, $notifMsg);
+            $this->userModel->createNotification($studentUserId, $notifMsg, $violationId);
         } elseif (isset($_POST['receive_violation_dash'])) {
             $violationId = $_POST['violation_id'];
             $guardId = $_POST['guard_id'];
@@ -51,7 +51,7 @@ class OSASController extends BaseController {
             
             // Notify the guard
             $msg = "OSAS has officially received the violation you submitted for $studentName.";
-            $this->userModel->createNotification($guardId, $msg);
+            $this->userModel->createNotification($guardId, $msg, $violationId);
         }
 
         $this->runEscalationCheck();
@@ -64,8 +64,8 @@ class OSASController extends BaseController {
         $courseData = $this->getCourseViolationData();
         $yearLevelData = $this->getYearLevelViolationData();
 
-        $unreadCount = $this->userModel->getUnreadNotificationCount($_SESSION['user_id']);
-        $notifications = $this->userModel->getNotifications($_SESSION['user_id']);
+        $unreadCount = $this->userModel->getUnreadNotificationCount($_SESSION['user_id'], $_SESSION['role']);
+        $notifications = $this->userModel->getNotifications($_SESSION['user_id'], 5, $_SESSION['role']);
 
         echo $this->render_view('osas/osas_dashboard', [
             'stats' => $stats,
@@ -139,8 +139,101 @@ class OSASController extends BaseController {
 
     public function mark_read() {
         if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'OSAS') return;
-        $this->userModel->markNotificationsAsRead($_SESSION['user_id']);
-        header("Location: index.php?url=osas/notifications");
+        $role = $_SESSION['role'] ?? null;
+        $this->userModel->markNotificationsAsRead($_SESSION['user_id'], $role);
+        header("Location: index.php?url=osas/dashboard");
+    }
+
+    public function records() {
+        if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'OSAS') {
+            header("Location: index.php");
+            exit();
+        }
+
+        $userId = $_SESSION['user_id'];
+        $message = "";
+
+        // Handle Administrative Actions
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            if (isset($_POST['receive_violation'])) {
+                $violationId = $_POST['violation_id'];
+                $studentName = $_POST['student_name'];
+                
+                // Fetch the guard ID for notification
+                $stmt = $this->db->prepare("SELECT guard_user_id FROM violations WHERE id = ?");
+                $stmt->bind_param("i", $violationId);
+                $stmt->execute();
+                $guardId = $stmt->get_result()->fetch_row()[0];
+
+                // Update status
+                $stmt = $this->db->prepare("UPDATE violations SET status = 'received' WHERE id = ?");
+                $stmt->bind_param("i", $violationId);
+                if ($stmt->execute()) {
+                    $message = "Violation for $studentName officially received.";
+                    // Notify the guard
+                    $this->userModel->createNotification($guardId, "OSAS has officially received the violation you submitted for $studentName.", $violationId);
+                }
+            } elseif (isset($_POST['update_violation'])) {
+                $violationId = $_POST['violation_id'];
+                $status = $_POST['status'];
+                $sanction = $_POST['sanction'];
+                $studentUserId = $_POST['student_user_id'];
+                
+                $stmt = $this->db->prepare("UPDATE violations SET status = ?, sanction = ? WHERE id = ?");
+                $stmt->bind_param("ssi", $status, $sanction, $violationId);
+                if ($stmt->execute()) {
+                    $message = "Violation record updated successfully.";
+                    // Notify the student
+                    $notifMsg = "Your violation record has been updated by OSAS. Status: " . ucfirst($status) . ". Sanction: " . ($sanction ?: "Pending");
+                    $this->userModel->createNotification($studentUserId, $notifMsg, $violationId);
+                }
+            } elseif (isset($_POST['complete_sanction'])) {
+                $violationId = $_POST['violation_id'];
+                $stmt = $this->db->prepare("UPDATE violations SET status = 'completed' WHERE id = ?");
+                $stmt->bind_param("i", $violationId);
+                if ($stmt->execute()) {
+                    $message = "Violation sanction marked as completed.";
+                }
+            } elseif (isset($_POST['delete_violation'])) {
+                $violationId = $_POST['violation_id'];
+                $stmt = $this->db->prepare("DELETE FROM violations WHERE id = ?");
+                $stmt->bind_param("i", $violationId);
+                if ($stmt->execute()) {
+                    $message = "Violation record permanently deleted.";
+                }
+            }
+        }
+
+        // Fetch all active/uncompleted violations
+        $activeViolations = $this->db->query("
+            SELECT v.*, u.full_name as student_name, s.student_id_number, s.course, s.year_level, s.section, u.profile_photo
+            FROM violations v 
+            JOIN users u ON v.student_user_id = u.id 
+            JOIN students s ON u.id = s.user_id 
+            WHERE v.status != 'completed' 
+            ORDER BY v.created_at DESC
+        ");
+
+        // Fetch history (completed)
+        $completedViolations = $this->db->query("
+            SELECT v.*, v.last_action_date as updated_at, u.full_name as student_name, s.student_id_number, s.course, s.year_level, s.section
+            FROM violations v 
+            JOIN users u ON v.student_user_id = u.id 
+            JOIN students s ON u.id = s.user_id 
+            WHERE v.status = 'completed' 
+            ORDER BY v.created_at DESC
+        ");
+
+        $unreadCount = $this->userModel->getUnreadNotificationCount($userId, $_SESSION['role']);
+        $notifications = $this->userModel->getNotifications($userId, 5, $_SESSION['role']);
+
+        echo $this->render_view('osas/osas_records', [
+            'activeViolations' => $activeViolations,
+            'completedViolations' => $completedViolations,
+            'unreadCount' => $unreadCount,
+            'notifications' => $notifications,
+            'message' => $message
+        ]);
     }
 
     public function profile() {
@@ -197,8 +290,8 @@ class OSASController extends BaseController {
         }
 
         $userData = $this->db->query("SELECT * FROM users WHERE id = $userId")->fetch_assoc();
-        $unreadCount = $this->userModel->getUnreadNotificationCount($userId);
-        $notifications = $this->userModel->getNotifications($userId);
+        $unreadCount = $this->userModel->getUnreadNotificationCount($userId, $_SESSION['role']);
+        $notifications = $this->userModel->getNotifications($userId, 5, $_SESSION['role']);
 
         echo $this->render_view('osas/osas_profile', [
             'userData' => $userData,
@@ -220,42 +313,47 @@ class OSASController extends BaseController {
         // Handle Add/Delete Guard Names
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             if (isset($_POST['add_guard'])) {
-                $name = $_POST['guard_name'];
-                // Check if name already exists but is inactive
-                $check = $this->db->prepare("SELECT id FROM guard_list WHERE name = ?");
-                $check->bind_param("s", $name);
-                $check->execute();
-                $res = $check->get_result();
-                if ($res->num_rows > 0) {
-                    $stmt = $this->db->prepare("UPDATE guard_list SET status = 'active' WHERE name = ?");
-                } else {
-                    $stmt = $this->db->prepare("INSERT INTO guard_list (name) VALUES (?)");
-                }
-                $stmt->bind_param("s", $name);
-                if ($stmt->execute()) {
-                    $message = "Guard added to the list!";
+                $name = trim($_POST['guard_name']);
+                if (!empty($name)) {
+                    $stmt = $this->db->prepare("INSERT INTO guard_list (name) VALUES (?) ON DUPLICATE KEY UPDATE status = 'active'");
+                    $stmt->bind_param("s", $name);
+                    if ($stmt->execute()) {
+                        $message = "Guard '$name' added successfully.";
+                    }
                 }
             } elseif (isset($_POST['delete_guard'])) {
                 $name = $_POST['guard_name'];
                 $stmt = $this->db->prepare("UPDATE guard_list SET status = 'inactive' WHERE name = ?");
                 $stmt->bind_param("s", $name);
                 if ($stmt->execute()) {
-                    $message = "Guard removed from active list.";
+                    $message = "Guard '$name' removed successfully.";
+                }
+            } elseif (isset($_POST['edit_guard'])) {
+                $id = $_POST['guard_id'];
+                $newName = trim($_POST['new_guard_name']);
+                if (!empty($newName)) {
+                    if ($this->userModel->updateGuardListName($id, $newName)) {
+                        $message = "Guard name updated successfully.";
+                    } else {
+                        $message = "Error updating guard name.";
+                    }
+                } else {
+                    $message = "Guard name cannot be empty.";
                 }
             }
         }
 
         // Fetch guards and their violation count
         $guards = $this->db->query("
-            SELECT g.name, 
-            (SELECT COUNT(*) FROM violations v WHERE v.recorded_by_guard_name = g.name) as total_recorded
+            SELECT g.id, g.name, 
+            (SELECT COUNT(*) FROM violations v WHERE v.recorded_by_guard_name = g.name) as report_count
             FROM guard_list g 
             WHERE g.status = 'active'
             ORDER BY g.name ASC
         ");
 
-        $unreadCount = $this->userModel->getUnreadNotificationCount($userId);
-        $notifications = $this->userModel->getNotifications($userId);
+        $unreadCount = $this->userModel->getUnreadNotificationCount($userId, $_SESSION['role']);
+        $notifications = $this->userModel->getNotifications($userId, 5, $_SESSION['role']);
 
         echo $this->render_view('osas/osas_guards', [
             'guards' => $guards,
@@ -319,8 +417,8 @@ class OSASController extends BaseController {
             }
         }
 
-        $unreadCount = $this->userModel->getUnreadNotificationCount($_SESSION['user_id']);
-        $notifications = $this->userModel->getNotifications($_SESSION['user_id']);
+        $unreadCount = $this->userModel->getUnreadNotificationCount($_SESSION['user_id'], $_SESSION['role']);
+        $notifications = $this->userModel->getNotifications($_SESSION['user_id'], 5, $_SESSION['role']);
 
         echo $this->render_view('osas/osas_students', [
             'studentsByYear' => $studentsByYear,
@@ -372,8 +470,8 @@ class OSASController extends BaseController {
             }
         }
 
-        $unreadCount = $this->userModel->getUnreadNotificationCount($userId);
-        $allNotifications = $this->userModel->getNotifications($userId, 50); // Get more for the full page
+        $unreadCount = $this->userModel->getUnreadNotificationCount($userId, $_SESSION['role']);
+        $allNotifications = $this->userModel->getNotifications($userId, 50, $_SESSION['role']); // Get more for the full page
 
         echo $this->render_view('osas/osas_notifications', [
             'notifications' => $allNotifications,
@@ -470,8 +568,8 @@ class OSASController extends BaseController {
                                       WHERE v.status = 'completed'
                                       ORDER BY v.created_at DESC");
 
-        $unreadCount = $this->userModel->getUnreadNotificationCount($_SESSION['user_id']);
-        $notifications = $this->userModel->getNotifications($_SESSION['user_id']);
+        $unreadCount = $this->userModel->getUnreadNotificationCount($_SESSION['user_id'], $_SESSION['role']);
+        $notifications = $this->userModel->getNotifications($_SESSION['user_id'], 5, $_SESSION['role']);
 
         echo $this->render_view('osas/osas_records', [
             'activeViolations' => $activeViolations,

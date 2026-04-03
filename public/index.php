@@ -21,9 +21,9 @@ if (file_exists($controllerFile)) {
         $params = array_slice($url, 2);
         call_user_func_array([$controller, $methodName], $params);
     } else {
-        echo "404 - Method not found";
+        echo "<h2 style='text-align:center; margin-top:100px; color:#e74c3c; font-family:sans-serif;'>Invalid Action or Request Failure</h2>";
     }
 } else {
-    echo "404 - Controller not found";
+    echo "<h2 style='text-align:center; margin-top:100px; color:#e74c3c; font-family:sans-serif;'>Invalid Action or Request Failure</h2>";
 }
 ?>

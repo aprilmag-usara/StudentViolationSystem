@@ -37,6 +37,25 @@
         </div>
     </div>
 
+    <!-- Edit Guard Name Modal (For Security In-Charge) -->
+    <div id="editGuardNameModal" class="modal-overlay">
+        <div class="modal-content text-left">
+            <span class="modal-close" onclick="hideEditGuardNameModal()">&times;</span>
+            <h2 class="mb-20">Edit Guard Name</h2>
+            <form method="POST" action="index.php?url=guard/profile" class="flex-column gap-20">
+                <input type="hidden" name="guard_id" id="editGuardId">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" name="new_guard_name" id="editGuardName" required class="form-input-styled">
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="modal-btn modal-btn-no" onclick="hideEditGuardNameModal()">Cancel</button>
+                    <button type="submit" name="edit_guard" class="modal-btn modal-btn-yes">Update Name</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Change Password Modal -->
     <div id="passwordModal" class="modal-overlay">
         <div class="modal-content text-left">
@@ -118,6 +137,45 @@
                         <button onclick="showPasswordModal()" class="modal-btn modal-btn-no px-40">Change Password</button>
                     </div>
                 </div>
+            </div>
+
+            <!-- Security In-Charge List -->
+            <div class="welcome-section text-center mt-50">
+                <h2 class="fs-1-8">Security Team Members</h2>
+                <p>List of all guards in the security in-charge roster.</p>
+            </div>
+
+            <div class="guard-grid mt-20">
+                <?php if ($guardsList && $guardsList->num_rows > 0): ?>
+                    <?php while ($g = $guardsList->fetch_assoc()): ?>
+                        <div class="guard-card">
+                            <div class="guard-header">
+                                <div class="guard-avatar">
+                                    <?php echo substr($g['name'], 0, 1); ?>
+                                </div>
+                                <div class="guard-info">
+                                    <h3><?php echo htmlspecialchars($g['name']); ?></h3>
+                                    <p>Active Security In-Charge</p>
+                                </div>
+                            </div>
+
+                            <div class="guard-stats">
+                                <div class="stat-item">
+                                    <h4>Total Reports</h4>
+                                    <div class="value"><?php echo $g['report_count'] ?? 0; ?></div>
+                                </div>
+                            </div>
+
+                            <div class="guard-actions">
+                                <button onclick="showEditGuardNameModal(<?php echo $g['id']; ?>, '<?php echo addslashes($g['name']); ?>')" class="guard-btn edit">Edit Name</button>
+                            </div>
+                        </div>
+                    <?php endwhile; ?>
+                <?php else: ?>
+                    <div class="glass-card text-center p-40">
+                        <p class="text-white-40">No guards registered in the roster.</p>
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
     </main>

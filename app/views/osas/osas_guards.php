@@ -62,8 +62,9 @@
 
                             <div class="guard-actions">
                                 <button onclick="viewGuardRecords('<?php echo addslashes($g['name']); ?>')" class="guard-btn view">View Activity</button>
+                                <button onclick="showEditGuardModal(<?php echo $g['id']; ?>, '<?php echo addslashes($g['name']); ?>')" class="guard-btn edit">Edit Name</button>
                                 <form method="POST" class="flex display-flex" style="flex: 1;">
-                                    <input type="hidden" name="guard_id" value="<?php echo $g['id']; ?>">
+                                    <input type="hidden" name="guard_name" value="<?php echo htmlspecialchars($g['name']); ?>">
                                     <button type="submit" name="delete_guard" class="guard-btn delete w-100" onclick="return confirm('Remove this guard from the system?')">Remove</button>
                                 </form>
                             </div>
@@ -76,6 +77,25 @@
                 <?php endif; ?>
             </div>
         </main>
+
+    <!-- Edit Guard Modal -->
+    <div id="editGuardModal" class="modal-overlay">
+        <div class="modal-content text-left">
+            <span class="modal-close" onclick="hideEditGuardModal()">&times;</span>
+            <h2 class="mb-20">Edit Guard Name</h2>
+            <form method="POST" class="flex-column gap-20">
+                <input type="hidden" name="guard_id" id="editGuardId">
+                <div class="form-group">
+                    <label>Guard Name</label>
+                    <input type="text" name="new_guard_name" id="editGuardName" class="form-input-styled" required>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="modal-btn modal-btn-no" onclick="hideEditGuardModal()">Cancel</button>
+                    <button type="submit" name="edit_guard" class="modal-btn modal-btn-yes">Update Name</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <!-- Guard Activity Modal -->
     <div id="guardModal" class="modal-overlay">

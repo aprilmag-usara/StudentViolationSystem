@@ -7,16 +7,46 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function initCharts() {
-    // Violation Trends Chart
-    const activityCtx = document.getElementById('activityChart');
-    if (activityCtx) {
-        new Chart(activityCtx, {
+    // Shared chart options
+    const sharedOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                grid: { color: 'rgba(255,255,255,0.05)' },
+                ticks: { color: 'rgba(255,255,255,0.5)', font: { size: 10 } }
+            },
+            x: {
+                grid: { display: false },
+                ticks: { color: 'rgba(255,255,255,0.5)', font: { size: 10 } }
+            }
+        }
+    };
+
+    // Use global chartData if available, otherwise use defaults
+    const data = typeof chartData !== 'undefined' ? chartData : {
+        monthly: { months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'], counts: [0,0,0,0,0,0,0,0,0,0,0,0] },
+        category: { Minor: 0, Major: 0 },
+        course: { courses: [], counts: [] },
+        yearLevel: { levels: [], counts: [] }
+    };
+
+    // 1. Violation Trends Chart (Line Chart)
+    const trendsCtx = document.getElementById('violationTrendsChart');
+    if (trendsCtx) {
+        new Chart(trendsCtx, {
             type: 'line',
             data: {
-                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                labels: data.monthly.months,
                 datasets: [{
-                    label: 'Violations Reported',
-                    data: [12, 19, 8, 15, 22, 10, 5, 12, 18, 25, 15, 10],
+                    label: 'Violations',
+                    data: data.monthly.counts,
                     borderColor: '#40916c',
                     backgroundColor: 'rgba(64, 145, 108, 0.1)',
                     borderWidth: 3,
@@ -24,38 +54,24 @@ function initCharts() {
                     fill: true,
                     pointBackgroundColor: '#fff',
                     pointBorderColor: '#40916c',
-                    pointRadius: 4
+                    pointRadius: 4,
+                    pointHoverRadius: 6
                 }]
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                    y: { 
-                        beginAtZero: true, 
-                        grid: { color: 'rgba(255,255,255,0.05)' },
-                        ticks: { color: 'rgba(255,255,255,0.5)' }
-                    },
-                    x: { 
-                        grid: { display: false },
-                        ticks: { color: 'rgba(255,255,255,0.5)' }
-                    }
-                }
-            }
+            options: sharedOptions
         });
     }
 
-    // Violation Types Distribution
-    const typeCtx = document.getElementById('typeChart');
-    if (typeCtx) {
-        new Chart(typeCtx, {
+    // 2. Type Distribution (Doughnut Chart)
+    const categoryCtx = document.getElementById('violationCategoryChart');
+    if (categoryCtx) {
+        new Chart(categoryCtx, {
             type: 'doughnut',
             data: {
                 labels: ['Minor', 'Major'],
                 datasets: [{
-                    data: [75, 25],
-                    backgroundColor: ['#40916c', '#e74c3c'],
+                    data: [data.category.Minor, data.category.Major],
+                    backgroundColor: ['#f1c40f', '#e74c3c'],
                     borderWidth: 0,
                     hoverOffset: 10
                 }]
@@ -63,14 +79,52 @@ function initCharts() {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                cutout: '75%',
                 plugins: {
                     legend: {
                         position: 'bottom',
-                        labels: { color: 'rgba(255,255,255,0.7)', padding: 20, font: { family: 'Poppins' } }
+                        labels: {
+                            color: 'rgba(255,255,255,0.7)',
+                            padding: 20,
+                            font: { family: 'Poppins', size: 11 }
+                        }
                     }
-                },
-                cutout: '70%'
+                }
             }
+        });
+    }
+
+    // 3. Top Course Cases (Bar Chart)
+    const courseCtx = document.getElementById('courseChart');
+    if (courseCtx) {
+        new Chart(courseCtx, {
+            type: 'bar',
+            data: {
+                labels: data.course.courses.length > 0 ? data.course.courses : ['None'],
+                datasets: [{
+                    data: data.course.counts.length > 0 ? data.course.counts : [0],
+                    backgroundColor: '#40916c',
+                    borderRadius: 6
+                }]
+            },
+            options: sharedOptions
+        });
+    }
+
+    // 4. Year Level Growth (Bar Chart)
+    const yearLevelCtx = document.getElementById('yearLevelChart');
+    if (yearLevelCtx) {
+        new Chart(yearLevelCtx, {
+            type: 'bar',
+            data: {
+                labels: data.yearLevel.levels.length > 0 ? data.yearLevel.levels.map(l => l + (isNaN(l) ? '' : ' Year')) : ['None'],
+                datasets: [{
+                    data: data.yearLevel.counts.length > 0 ? data.yearLevel.counts : [0],
+                    backgroundColor: 'rgba(64, 145, 108, 0.7)',
+                    borderRadius: 6
+                }]
+            },
+            options: sharedOptions
         });
     }
 }
@@ -82,22 +136,34 @@ function initCharts() {
 // Profile Modals
 function showEditModal() { 
     const modal = document.getElementById('editProfileModal');
-    if (modal) modal.style.display = 'flex'; 
+    if (modal) {
+        modal.style.display = 'flex';
+        toggleBodyScroll(true);
+    }
 }
 
 function hideEditModal() { 
     const modal = document.getElementById('editProfileModal');
-    if (modal) modal.style.display = 'none'; 
+    if (modal) {
+        modal.style.display = 'none';
+        toggleBodyScroll(false);
+    }
 }
 
 function showPasswordModal() { 
     const modal = document.getElementById('passwordModal');
-    if (modal) modal.style.display = 'flex'; 
+    if (modal) {
+        modal.style.display = 'flex';
+        toggleBodyScroll(true);
+    }
 }
 
 function hidePasswordModal() { 
     const modal = document.getElementById('passwordModal');
-    if (modal) modal.style.display = 'none'; 
+    if (modal) {
+        modal.style.display = 'none';
+        toggleBodyScroll(false);
+    }
 }
 
 // Records Management
@@ -138,11 +204,15 @@ function showViolationEditModal(v) {
     }
 
     modal.style.display = 'flex';
+    toggleBodyScroll(true);
 }
 
 function hideViolationEditModal() {
     const modal = document.getElementById('editModal');
-    if (modal) modal.style.display = 'none';
+    if (modal) {
+        modal.style.display = 'none';
+        toggleBodyScroll(false);
+    }
 }
 
 // Guard Activity
@@ -160,6 +230,7 @@ function viewGuardRecords(name) {
     if (subtitleEl) subtitleEl.innerText = `Full reporting history for ${name}`;
     
     modal.style.display = 'flex';
+    toggleBodyScroll(true);
     loading.style.display = 'block';
     content.style.display = 'none';
 
@@ -197,7 +268,10 @@ function viewGuardRecords(name) {
 
 function hideGuardModal() {
     const modal = document.getElementById('guardModal');
-    if (modal) modal.style.display = 'none';
+    if (modal) {
+        modal.style.display = 'none';
+        toggleBodyScroll(false);
+    }
 }
 
 // Student Management
@@ -209,6 +283,7 @@ function viewStudent(id) {
     if (!modal || !loading || !content) return;
 
     modal.style.display = 'flex';
+    toggleBodyScroll(true);
     loading.style.display = 'block';
     content.style.display = 'none';
 
@@ -245,19 +320,22 @@ function viewStudent(id) {
                 if (vs && vs.length > 0) {
                     vs.forEach(v => {
                         const item = document.createElement('div');
-                        item.className = `history-item ${v.violation_type.toLowerCase()}`;
+                        item.className = `history-item-modern ${v.violation_type.toLowerCase()}`;
                         item.innerHTML = `
-                            <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-                                <span style="font-weight:600; color:white;">${v.violation_type} Violation</span>
-                                <span style="font-size:0.7rem; opacity:0.5;">${new Date(v.violation_time).toLocaleDateString()}</span>
+                            <div style="display:flex; justify-content:space-between; margin-bottom:8px; align-items:center;">
+                                <span class="v-type-badge ${v.violation_type.toLowerCase()}" style="margin-bottom:0; font-size:0.65rem;">${v.violation_type} Violation</span>
+                                <span style="font-size:0.8rem; opacity:0.5; font-weight:500;">${new Date(v.violation_time).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                             </div>
-                            <div style="font-size:0.85rem; color:rgba(255,255,255,0.8); margin-bottom:8px;">${v.description}</div>
-                            <div style="font-size:0.75rem; color:var(--mint-green);">Sanction: ${v.sanction || 'Pending review'}</div>
+                            <div style="font-size:1.05rem; color:white; font-weight:500; margin-bottom:10px;">${v.description}</div>
+                            <div class="flex-between align-center">
+                                <span style="font-size:0.8rem; color:var(--mint-green); font-weight:600;">Sanction: ${v.sanction || 'Pending review'}</span>
+                                <span class="status-pill-modern ${v.status.toLowerCase()}" style="padding:4px 12px; font-size:0.65rem;">${v.status.replace('_', ' ')}</span>
+                            </div>
                         `;
                         historyContainer.appendChild(item);
                     });
                 } else {
-                    historyContainer.innerHTML = '<div style="padding:20px; text-align:center; opacity:0.3;">Clean record. No violations found.</div>';
+                    historyContainer.innerHTML = '<div style="padding:60px; text-align:center; opacity:0.3; font-style:italic;">No disciplinary records found. This student has a clean conduct record.</div>';
                 }
             }
 
@@ -272,59 +350,26 @@ function viewStudent(id) {
 
 function hideStudentModal() {
     const modal = document.getElementById('studentModal');
-    if (modal) modal.style.display = 'none';
+    if (modal) {
+        modal.style.display = 'none';
+        toggleBodyScroll(false);
+    }
 }
 
-// Student Search & Filtering
+// Student Search & Filtering (On-page)
 document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('studentSearch');
-    const searchDropdown = document.getElementById('searchDropdown');
 
-    if (searchInput && searchDropdown) {
+    if (searchInput) {
         searchInput.addEventListener('input', function() {
-            const query = this.value.trim();
-            if (query.length < 1) {
-                searchDropdown.style.display = 'none';
-                return;
-            }
-
-            fetch(`index.php?url=guard/search_ajax&query=${encodeURIComponent(query)}`)
-                .then(r => r.json())
-                .then(data => {
-                    searchDropdown.innerHTML = '';
-                    if (data && data.length > 0) {
-                        data.forEach(s => {
-                            const div = document.createElement('div');
-                            div.className = 'search-result-item';
-                            div.innerHTML = `
-                                <div class="result-info">
-                                    <h4>${s.full_name}</h4>
-                                    <p>${s.student_id_number} | ${s.course} (${s.year_level})</p>
-                                </div>
-                            `;
-                            div.onclick = () => {
-                                viewStudent(s.id);
-                                searchDropdown.style.display = 'none';
-                                searchInput.value = '';
-                            };
-                            searchDropdown.appendChild(div);
-                        });
-                        searchDropdown.style.display = 'block';
-                    } else {
-                        searchDropdown.style.display = 'none';
-                    }
-                });
-        });
-
-        // Instant Filter (on-page filter as user types)
-        searchInput.addEventListener('input', function() {
-            const query = this.value.toLowerCase();
+            const query = this.value.toLowerCase().trim();
             const cards = document.querySelectorAll('.student-mini-card');
             const sections = document.querySelectorAll('.year-section');
 
             cards.forEach(card => {
                 const name = card.querySelector('h4').innerText.toLowerCase();
                 const id = card.querySelector('p').innerText.toLowerCase();
+                
                 if (name.includes(query) || id.includes(query)) {
                     card.style.display = 'flex';
                 } else {
@@ -332,25 +377,49 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
+            // Show/Hide sections based on visible cards
+            let totalVisible = 0;
             sections.forEach(section => {
                 const visibleCards = section.querySelectorAll('.student-mini-card[style="display: flex;"]');
                 section.style.display = (visibleCards.length === 0 && query !== '') ? 'none' : 'block';
+                totalVisible += visibleCards.length;
             });
+
+            // Handle empty state
+            const noResults = document.getElementById('noResults');
+            if (noResults) {
+                noResults.style.display = (totalVisible === 0 && query !== '') ? 'block' : 'none';
+            }
         });
     }
 });
 
+function showEditGuardModal(id, name) {
+    const modal = document.getElementById('editGuardModal');
+    if (modal) {
+        document.getElementById('editGuardId').value = id;
+        document.getElementById('editGuardName').value = name;
+        modal.style.display = 'flex';
+        toggleBodyScroll(true);
+    }
+}
+
+function hideEditGuardModal() {
+    const modal = document.getElementById('editGuardModal');
+    if (modal) {
+        modal.style.display = 'none';
+        toggleBodyScroll(false);
+    }
+}
+
 // Generic Outside Click Handler for OSAS specific modals
 window.addEventListener('click', (e) => {
-    const modals = ['editProfileModal', 'passwordModal', 'editModal', 'guardModal', 'studentModal'];
+    const modals = ['editProfileModal', 'passwordModal', 'editModal', 'guardModal', 'studentModal', 'editGuardModal'];
     modals.forEach(id => {
         const modal = document.getElementById(id);
-        if (modal && e.target === modal) modal.style.display = 'none';
+        if (modal && e.target === modal) {
+            modal.style.display = 'none';
+            toggleBodyScroll(false);
+        }
     });
-    
-    const searchDropdown = document.getElementById('searchDropdown');
-    const searchInput = document.getElementById('studentSearch');
-    if (searchDropdown && searchInput && !searchInput.contains(e.target)) {
-        searchDropdown.style.display = 'none';
-    }
 });

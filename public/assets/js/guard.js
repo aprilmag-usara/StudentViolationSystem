@@ -6,6 +6,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     initScanner();
     initLiveSearch();
+    handleViolationHighlight();
 });
 
 /**
@@ -169,6 +170,31 @@ function initLiveSearch() {
 }
 
 /**
+ * Handles highlighting a specific violation row based on URL parameter.
+ */
+function handleViolationHighlight() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const violationId = urlParams.get('violation_id');
+
+    if (violationId) {
+        const targetRow = document.getElementById(`violation-${violationId}`);
+        if (targetRow) {
+            // Scroll to the row
+            targetRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+            // Add a temporary class for animation (CSS handles the animation)
+            targetRow.classList.add('highlight-row');
+
+            // Remove the highlight class after the animation finishes
+            // The animation duration is 1.5s * 3 = 4.5s
+            setTimeout(() => {
+                targetRow.classList.remove('highlight-row');
+            }, 4500); 
+        }
+    }
+}
+
+/**
  * Profile & UI Logic
  */
 function showEditModal() { 
@@ -191,9 +217,23 @@ function hidePasswordModal() {
     if (modal) modal.style.display = 'none'; 
 }
 
+function showEditGuardNameModal(id, name) {
+    const modal = document.getElementById('editGuardNameModal');
+    if (modal) {
+        document.getElementById('editGuardId').value = id;
+        document.getElementById('editGuardName').value = name;
+        modal.style.display = 'flex';
+    }
+}
+
+function hideEditGuardNameModal() {
+    const modal = document.getElementById('editGuardNameModal');
+    if (modal) modal.style.display = 'none';
+}
+
 // Close profile modals on outside click
 window.addEventListener('click', function(event) {
-    const modals = ['editProfileModal', 'passwordModal'];
+    const modals = ['editProfileModal', 'passwordModal', 'editGuardNameModal'];
     modals.forEach(id => {
         const modal = document.getElementById(id);
         if (modal && event.target === modal) modal.style.display = "none";

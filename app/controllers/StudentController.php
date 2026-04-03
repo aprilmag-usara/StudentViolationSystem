@@ -48,7 +48,8 @@ class StudentController extends BaseController {
 
     public function mark_read() {
         if (!isset($_SESSION['user_id'])) return;
-        $this->userModel->markNotificationsAsRead($_SESSION['user_id']);
+        $role = $_SESSION['role'] ?? null;
+        $this->userModel->markNotificationsAsRead($_SESSION['user_id'], $role);
         header("Location: index.php?url=student/dashboard");
     }
 
@@ -143,9 +144,10 @@ class StudentController extends BaseController {
     }
 
     private function getNavData($userId) {
+        $role = $_SESSION['role'] ?? null;
         return [
-            'unreadCount' => $this->userModel->getUnreadNotificationCount($userId),
-            'notifications' => $this->userModel->getNotifications($userId)
+            'unreadCount' => $this->userModel->getUnreadNotificationCount($userId, $role),
+            'notifications' => $this->userModel->getNotifications($userId, 5, $role)
         ];
     }
 

@@ -160,7 +160,7 @@
                         </thead>
                         <tbody>
                             <?php while ($row = $recentViolations->fetch_assoc()): ?>
-                            <tr>
+                            <tr id="violation-<?php echo $row['id']; ?>">
                                 <td>
                                     <div class="fw-600"><?php echo htmlspecialchars($row['student_name']); ?></div>
                                     <div class="fs-0-7 text-white-50"><?php echo htmlspecialchars($row['student_id_number']); ?></div>
@@ -194,8 +194,8 @@
                                         <input type="hidden" name="student_user_id" value="<?php echo $row['student_user_id']; ?>">
                                         <input type="hidden" name="student_name" value="<?php echo htmlspecialchars($row['student_name']); ?>">
                                         
-                                        <input type="text" name="sanction" placeholder="Enter sanction..." class="form-input-styled" required>
-                                        <button type="submit" name="review_violation" class="modal-btn modal-btn-yes px-15 fs-0-8">Submit Sanction</button>
+                                        <input type="text" name="sanction" placeholder="Enter sanction..." class="sanction-input-dash" required>
+                                        <button type="submit" name="review_violation" class="btn-submit-sanction">Submit Sanction</button>
                                     </form>
                                 </td>
                             </tr>
@@ -214,6 +214,15 @@
     <!-- Logout Modal removed since it is now in navbar.php -->
 
     <!-- Charts Script -->
+    <script>
+        // Inject dynamic data from PHP
+        const chartData = {
+            monthly: <?php echo json_encode($monthlyData); ?>,
+            category: <?php echo json_encode($categoryData); ?>,
+            course: <?php echo json_encode($courseData); ?>,
+            yearLevel: <?php echo json_encode($yearLevelData); ?>
+        };
+    </script>
     <script src="assets/js/osas.js"></script>
 </body>
 </html>

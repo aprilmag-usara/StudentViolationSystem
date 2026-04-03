@@ -24,20 +24,21 @@ $active = $active ?? '';
             <a href="index.php?url=osas/records" class="sidebar-link <?php echo $active === 'records' ? 'active' : ''; ?>">
                 <span class="icon">📋</span> Records
             </a>
-            <a href="index.php?url=osas/profile" class="sidebar-link <?php echo $active === 'profile' ? 'active' : ''; ?>">
-                <span class="icon">👤</span> Profile
-            </a>
             
-            <a href="javascript:void(0)" onclick="toggleNotifications()" class="sidebar-link relative-pos">
+            <a href="#" id="osasNotifLink" class="sidebar-link relative-pos">
                 <span class="icon">🔔</span> Notifications
                 <?php if (isset($unreadCount) && $unreadCount > 0): ?>
                     <span class="notif-badge-sidebar"><?php echo $unreadCount; ?></span>
                 <?php endif; ?>
             </a>
+
+            <a href="index.php?url=osas/profile" class="sidebar-link <?php echo $active === 'profile' ? 'active' : ''; ?>">
+                <span class="icon">👤</span> Profile
+            </a>
         </nav>
 
         <div class="sidebar-footer">
-            <a href="#" onclick="showLogoutModal()" class="sidebar-link logout-link">
+            <a href="#" id="osasLogoutBtn" class="sidebar-link logout-link">
                 <span class="icon">🚪</span> Log Out
             </a>
         </div>
@@ -54,7 +55,7 @@ $active = $active ?? '';
             <li><a href="index.php?url=<?php echo $role; ?>/dashboard" class="<?php echo $active === 'home' ? 'active' : ''; ?>">Home Page</a></li>
             <li><a href="index.php?url=<?php echo $role; ?>/records" class="<?php echo $active === 'records' ? 'active' : ''; ?>">Records</a></li>
             <li>
-                <a href="javascript:void(0)" onclick="toggleNotifications()" class="relative-pos">
+                <a href="#" id="navNotifLink" class="relative-pos">
                     Notifications
                     <?php if (isset($unreadCount) && $unreadCount > 0): ?>
                         <span class="notif-badge"><?php echo $unreadCount; ?></span>
@@ -62,7 +63,7 @@ $active = $active ?? '';
                 </a>
             </li>
             <li><a href="index.php?url=<?php echo $role; ?>/profile" class="<?php echo $active === 'profile' ? 'active' : ''; ?>">Profile</a></li>
-            <li><a href="#" onclick="showLogoutModal()">Log Out</a></li>
+            <li><a href="#" id="navLogoutBtn">Log Out</a></li>
         </ul>
     </nav>
 <?php endif; ?>
@@ -82,7 +83,7 @@ $active = $active ?? '';
             while($n = $notifications->fetch_assoc()): 
             ?>
                 <div class="notif-item <?php echo $n['is_read'] ? '' : 'unread'; ?>" 
-                     onclick="window.location.href='index.php?url=<?php echo $role; ?>/records'">
+                     data-url="index.php?url=<?php echo $role; ?>/<?php echo ($role === 'osas') ? 'dashboard' : 'records'; ?><?php echo isset($n['violation_id']) ? '&violation_id=' . $n['violation_id'] : ''; ?>">
                     <div class="notif-msg"><?php echo htmlspecialchars($n['message']); ?></div>
                     <div class="notif-time"><?php echo date('M d, h:i A', strtotime($n['created_at'])); ?></div>
                 </div>
@@ -101,7 +102,7 @@ $active = $active ?? '';
         <h2>Logging Out?</h2>
         <p>Are you sure you want to log out of your account?</p>
         <div class="modal-buttons">
-            <button class="modal-btn modal-btn-no" onclick="hideLogoutModal()">No, stay</button>
+            <button class="modal-btn modal-btn-no" id="cancelLogout">No, stay</button>
             <a href="index.php?url=auth/logout" class="modal-btn modal-btn-yes no-underline">Yes, logout</a>
         </div>
     </div>

@@ -69,22 +69,24 @@
                                 </td>
                                 <td>
                                     <div class="flex gap-10">
+                                        <!-- Edit first -->
+                                        <button onclick='showViolationEditModal(<?php echo json_encode($v); ?>)' class="modal-btn modal-btn-yes px-15 fs-0-7">Edit</button>
+
+                                        <!-- Actions (Complete or Receive) in the middle -->
                                         <?php if ($v['status'] === 'pending'): ?>
                                             <form method="POST" class="display-inline">
                                                 <input type="hidden" name="violation_id" value="<?php echo $v['id']; ?>">
                                                 <input type="hidden" name="student_name" value="<?php echo htmlspecialchars($v['student_name']); ?>">
                                                 <button type="submit" name="receive_violation" class="modal-btn btn-receive px-15 fs-0-7">Receive</button>
                                             </form>
-                                        <?php endif; ?>
-                                        <button onclick='showViolationEditModal(<?php echo json_encode($v); ?>)' class="modal-btn modal-btn-yes px-15 fs-0-7">Edit</button>
-                                        
-                                        <?php if ($v['status'] !== 'completed' && $v['status'] !== 'pending'): ?>
+                                        <?php elseif ($v['status'] !== 'completed'): ?>
                                             <form method="POST" class="display-inline">
                                                 <input type="hidden" name="violation_id" value="<?php echo $v['id']; ?>">
                                                 <button type="submit" name="complete_sanction" class="modal-btn btn-complete px-15 fs-0-7">Complete</button>
                                             </form>
                                         <?php endif; ?>
                                         
+                                        <!-- Delete last -->
                                         <form method="POST" class="display-inline" onsubmit="return confirm('Are you sure you want to delete this record?');">
                                             <input type="hidden" name="violation_id" value="<?php echo $v['id']; ?>">
                                             <button type="submit" name="delete_violation" class="modal-btn btn-delete-record px-15 fs-0-7">Delete</button>

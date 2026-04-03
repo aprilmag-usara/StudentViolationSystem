@@ -311,3 +311,92 @@
     justify-content: center;
     margin-top: 30px;
 }
+
+/* Highlight for notifications */
+.highlight-row {
+    animation: pulse-highlight 1.5s 3; /* Pulse 3 times */
+}
+
+@keyframes pulse-highlight {
+    0% { background-color: transparent; }
+    50% { background-color: rgba(64, 145, 108, 0.3); } /* Sage green with transparency */
+    100% { background-color: transparent; }
+}
+
+/* Guard Management / Security In-Charge List Styles */
+.guard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 25px;
+    margin-top: 30px;
+}
+.guard-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(15px);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    padding: 25px;
+    position: relative;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    text-align: left;
+}
+.guard-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--sage-green);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+.guard-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+.guard-avatar {
+    width: 60px;
+    height: 60px;
+    background: var(--sage-green);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+    font-weight: 700;
+}
+.guard-info h3 { margin: 0; font-size: 1.1rem; color: white; }
+.guard-info p { margin: 0; font-size: 0.8rem; color: rgba(255,255,255,0.5); }
+
+.guard-stats {
+    display: flex;
+    background: rgba(0,0,0,0.2);
+    padding: 15px;
+    border-radius: 15px;
+    justify-content: space-around;
+    text-align: center;
+}
+.stat-item h4 { margin: 0; font-size: 0.7rem; color: rgba(255,255,255,0.4); text-transform: uppercase; }
+.stat-item .value { font-size: 1.3rem; font-weight: 700; color: var(--mint-green); }
+
+.guard-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: auto;
+}
+.guard-btn {
+    flex: 1;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid var(--glass-border);
+    background: rgba(255,255,255,0.05);
+    color: white;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+    text-decoration: none;
+}
+.guard-btn:hover { background: rgba(255,255,255,0.1); }
+.guard-btn.edit:hover { border-color: var(--sage-green); color: var(--mint-green); }
+

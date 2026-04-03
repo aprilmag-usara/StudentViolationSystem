@@ -299,6 +299,19 @@ h1 {
     transform: translateY(-2px);
     box-shadow: 0 15px 35px rgba(64, 145, 108, 0.4);
 }
+.btn-auth.ready { background: #40916c; }
+
+/* Dashboard Highlights */
+.highlight-record {
+    animation: pulseHighlight 3s ease;
+}
+
+@keyframes pulseHighlight {
+    0% { background: transparent; }
+    20% { background: rgba(64, 145, 108, 0.3); }
+    80% { background: rgba(64, 145, 108, 0.3); }
+    100% { background: transparent; }
+}
 
 .auth-footer {
     margin-top: 35px;

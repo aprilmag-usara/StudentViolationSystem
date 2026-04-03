@@ -1,6 +1,248 @@
 /* Student-Specific Styles */
 
-/* Violation Cards (Mainly for Student Home/Records) */
+.welcome-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 40px;
+}
+
+.quick-stats {
+    display: flex;
+    gap: 15px;
+}
+
+.stat-pill {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--glass-border);
+    padding: 10px 20px;
+    border-radius: 50px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 100px;
+}
+
+.stat-pill .label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.5);
+    letter-spacing: 1px;
+}
+
+.stat-pill .value {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--mint-green);
+}
+
+.card-header-styled {
+    background: rgba(255, 255, 255, 0.03);
+    padding: 20px 30px;
+    border-bottom: 1px solid var(--glass-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.view-all-link {
+    font-size: 0.85rem;
+    color: var(--sage-green);
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.view-all-link:hover {
+    color: var(--mint-green);
+    text-decoration: underline;
+}
+
+.violation-grid-modern {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.violation-item-modern {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 25px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    transition: all 0.3s ease;
+    border-left: 5px solid transparent;
+}
+
+.violation-item-modern:hover {
+    background: rgba(255, 255, 255, 0.04);
+    transform: translateX(5px);
+    border-color: rgba(64, 145, 108, 0.3);
+}
+
+.violation-item-modern.major { border-left-color: #e74c3c; }
+.violation-item-modern.minor { border-left-color: #f1c40f; }
+
+.v-main-info {
+    flex: 1;
+}
+
+.v-type-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 10px;
+}
+
+.v-type-badge.major { background: rgba(231, 76, 60, 0.2); color: #ff6b6b; }
+.v-type-badge.minor { background: rgba(241, 196, 15, 0.2); color: #ffd93d; }
+
+.v-title {
+    margin: 0 0 10px 0;
+    font-size: 1.1rem;
+    color: white;
+}
+
+.v-meta {
+    display: flex;
+    gap: 20px;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.v-status-section {
+    display: flex;
+    align-items: center;
+    gap: 40px;
+}
+
+.v-sanction {
+    text-align: right;
+    min-width: 150px;
+}
+
+.v-sanction .label {
+    display: block;
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.4);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+}
+
+.v-sanction .value {
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
+.v-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 12px;
+}
+
+.status-pill-modern {
+    padding: 6px 16px;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-pill-modern.pending { background: rgba(255, 255, 255, 0.1); color: white; }
+.status-pill-modern.received { background: rgba(52, 152, 219, 0.2); color: #3498db; }
+.status-pill-modern.in_progress { background: rgba(243, 156, 18, 0.2); color: #f39c12; }
+.status-pill-modern.completed { background: rgba(46, 204, 113, 0.2); color: #2ecc71; }
+
+.btn-details {
+    background: transparent;
+    border: 1px solid var(--sage-green);
+    color: var(--sage-green);
+    padding: 6px 20px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-details:hover {
+    background: var(--sage-green);
+    color: white;
+}
+
+.btn-details-mini {
+    background: transparent;
+    border: 1px solid rgba(64, 145, 108, 0.4);
+    color: var(--sage-green);
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-details-mini:hover {
+    background: var(--sage-green);
+    color: white;
+    border-color: var(--sage-green);
+}
+
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.records-table-modern {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.records-table-modern th {
+    text-align: left;
+    padding: 15px 20px;
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.records-table-modern td {
+    padding: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.records-table-modern tr:hover td {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.detail-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.empty-state-icon {
+    font-size: 4rem;
+}
+
+/* Modal Enhancements */
+.modal-header-styled {
+    border-bottom: 1px solid var(--glass-border);
+    padding-bottom: 15px;
+}
+
+.bg-black-20 { background: rgba(0, 0, 0, 0.2); }
+.border-1 { border-width: 1px; }
+.border-white-10 { border-color: rgba(255, 255, 255, 0.1); }
+.letter-spacing-1 { letter-spacing: 1px; }
+
+/* Violation Cards (Legacy - for compatibility if needed) */
 .violation-card {
     border-left: 5px solid #e74c3c;
     background: rgba(231, 76, 60, 0.05);

@@ -19,7 +19,7 @@
     <main class="main-dashboard">
         <div class="welcome-section">
             <h1>Guard Dashboard</h1>
-            <p>Welcome, <?php echo htmlspecialchars($guardInfo['full_name']); ?>. Ready to record violations?</p>
+            <p>Welcome, <?php echo htmlspecialchars($displayName); ?>. Ready to record violations?</p>
         </div>
 
         <?php if (!empty($message)): 

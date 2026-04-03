@@ -20,13 +20,8 @@ class GuardController extends BaseController {
         }
         $guardInfo = $this->userModel->getGuardInfo($_SESSION['user_id']);
         
-        if (!$guardInfo) {
-            $guardInfo = [
-                'full_name' => $_SESSION['username'],
-                'guard_rank' => 'N/A',
-                'schedule' => 'N/A'
-            ];
-        }
+        // Use CHMSU Security as the account name if it matches our shared account logic
+        $displayName = ($guardInfo && $guardInfo['full_name'] === 'CHMSU Security') ? 'CHMSU Security' : ($_SESSION['username'] ?? 'Guard');
 
         $message = "";
         $studentData = null;
@@ -62,14 +57,14 @@ class GuardController extends BaseController {
                 'violation_time' => date('Y-m-d H:i:s')
             ];
 
-            if ($this->violationModel->create($data)) {
+            if ($violationId = $this->violationModel->create($data)) {
                 $message = "Violation submitted to OSAS successfully!";
                 
                 // Notify all OSAS admins
                 $osasAdmins = $this->userModel->getOsasAdmins();
                 $notifMsg = "A new violation for " . $_POST['student_search_query'] . " was submitted by " . $_POST['recorded_by_guard_name'];
                 while($admin = $osasAdmins->fetch_assoc()) {
-                    $this->userModel->createNotification($admin['id'], $notifMsg);
+                    $this->userModel->createNotification($admin['id'], $notifMsg, $violationId);
                 }
             } else {
                 $message = "Error submitting violation.";
@@ -80,6 +75,7 @@ class GuardController extends BaseController {
 
         echo $this->render_view('guard/guard_dashboard', array_merge($navData, [
             'guardInfo' => $guardInfo,
+            'displayName' => $displayName,
             'message' => $message,
             'studentData' => $studentData,
             'guardList' => $guardList,
@@ -89,7 +85,8 @@ class GuardController extends BaseController {
 
     public function mark_read() {
         if (!isset($_SESSION['user_id'])) return;
-        $this->userModel->markNotificationsAsRead($_SESSION['user_id']);
+        $role = $_SESSION['role'] ?? null;
+        $this->userModel->markNotificationsAsRead($_SESSION['user_id'], $role);
         header("Location: index.php?url=guard/dashboard");
     }
 
@@ -142,10 +139,23 @@ class GuardController extends BaseController {
                         $message = "Error updating password.";
                     }
                 }
+            } elseif (isset($_POST['edit_guard'])) {
+                $id = $_POST['guard_id'];
+                $newName = trim($_POST['new_guard_name']);
+                if (!empty($newName)) {
+                    if ($this->userModel->updateGuardListName($id, $newName)) {
+                        $message = "Guard name updated successfully.";
+                    } else {
+                        $message = "Error updating guard name.";
+                    }
+                } else {
+                    $message = "Guard name cannot be empty.";
+                }
             }
         }
 
         $guardInfo = $this->userModel->getGuardInfo($userId);
+        $guardsList = $this->userModel->getGuardsWithCounts();
         
         // Ensure bio and profile_photo exist
         $userBase = $this->userModel->findByUsername($_SESSION['username']);
@@ -157,6 +167,7 @@ class GuardController extends BaseController {
 
         echo $this->render_view('guard/guard_profile', array_merge($navData, [
             'guardInfo' => $guardInfo,
+            'guardsList' => $guardsList,
             'message' => $message,
             'active' => 'profile'
         ]));
@@ -170,19 +181,23 @@ class GuardController extends BaseController {
         $guardInfo = $this->userModel->getGuardInfo($_SESSION['user_id']);
         $violations = $this->violationModel->findByGuard($_SESSION['user_id']);
         
+        $displayName = ($guardInfo && $guardInfo['full_name'] === 'CHMSU Security') ? 'CHMSU Security' : ($_SESSION['username'] ?? 'Guard');
+
         $navData = $this->getNavData($_SESSION['user_id']);
 
         echo $this->render_view('guard/guard_records', array_merge($navData, [
             'guardInfo' => $guardInfo,
+            'displayName' => $displayName,
             'violations' => $violations,
             'active' => 'records'
         ]));
     }
 
     private function getNavData($userId) {
+        $role = $_SESSION['role'] ?? null;
         return [
-            'unreadCount' => $this->userModel->getUnreadNotificationCount($userId),
-            'notifications' => $this->userModel->getNotifications($userId)
+            'unreadCount' => $this->userModel->getUnreadNotificationCount($userId, $role),
+            'notifications' => $this->userModel->getNotifications($userId, 5, $role)
         ];
     }
 

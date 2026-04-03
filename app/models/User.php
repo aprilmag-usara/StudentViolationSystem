@@ -85,6 +85,21 @@ class User {
         return $stmt->get_result();
     }
 
+    public function getGuardsWithCounts() {
+        $sql = "SELECT g.id, g.name, 
+                (SELECT COUNT(*) FROM violations v WHERE v.recorded_by_guard_name = g.name) as report_count
+                FROM guard_list g 
+                WHERE g.status = 'active'
+                ORDER BY g.name ASC";
+        return $this->conn->query($sql);
+    }
+
+    public function updateGuardListName($id, $newName) {
+        $stmt = $this->conn->prepare("UPDATE guard_list SET name = ? WHERE id = ?");
+        $stmt->bind_param("si", $newName, $id);
+        return $stmt->execute();
+    }
+
     public function getAuthPasscode($role) {
         $stmt = $this->conn->prepare("SELECT passcode FROM system_auth_codes WHERE role = ?");
         if (!$stmt) {
@@ -98,29 +113,47 @@ class User {
     }
 
     // Notifications Logic
-    public function getUnreadNotificationCount($userId) {
-        $stmt = $this->conn->prepare("SELECT COUNT(*) FROM notifications WHERE user_id = ? AND is_read = FALSE");
+    public function getUnreadNotificationCount($userId, $role = null) {
+        $sql = "SELECT COUNT(*) FROM notifications n JOIN users u ON n.user_id = u.id WHERE n.is_read = FALSE AND (n.user_id = ?";
+        if ($role === 'GUARD') {
+            $sql .= " OR u.role = 'GUARD'";
+        }
+        $sql .= ")";
+        
+        $stmt = $this->conn->prepare($sql);
         $stmt->bind_param("i", $userId);
         $stmt->execute();
         return $stmt->get_result()->fetch_row()[0];
     }
 
-    public function getNotifications($userId, $limit = 5) {
-        $stmt = $this->conn->prepare("SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT ?");
+    public function getNotifications($userId, $limit = 5, $role = null) {
+        $sql = "SELECT n.* FROM notifications n JOIN users u ON n.user_id = u.id WHERE (n.user_id = ?";
+        if ($role === 'GUARD') {
+            $sql .= " OR u.role = 'GUARD'";
+        }
+        $sql .= ") ORDER BY n.created_at DESC LIMIT ?";
+        
+        $stmt = $this->conn->prepare($sql);
         $stmt->bind_param("ii", $userId, $limit);
         $stmt->execute();
         return $stmt->get_result();
     }
 
-    public function markNotificationsAsRead($userId) {
-        $stmt = $this->conn->prepare("UPDATE notifications SET is_read = TRUE WHERE user_id = ?");
+    public function markNotificationsAsRead($userId, $role = null) {
+        $sql = "UPDATE notifications n JOIN users u ON n.user_id = u.id SET n.is_read = TRUE WHERE (n.user_id = ?";
+        if ($role === 'GUARD') {
+            $sql .= " OR u.role = 'GUARD'";
+        }
+        $sql .= ")";
+        
+        $stmt = $this->conn->prepare($sql);
         $stmt->bind_param("i", $userId);
         return $stmt->execute();
     }
 
-    public function createNotification($userId, $message) {
-        $stmt = $this->conn->prepare("INSERT INTO notifications (user_id, message) VALUES (?, ?)");
-        $stmt->bind_param("is", $userId, $message);
+    public function createNotification($userId, $message, $violationId = null) {
+        $stmt = $this->conn->prepare("INSERT INTO notifications (user_id, message, violation_id) VALUES (?, ?, ?)");
+        $stmt->bind_param("isi", $userId, $message, $violationId);
         return $stmt->execute();
     }
 
