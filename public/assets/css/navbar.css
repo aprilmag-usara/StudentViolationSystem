@@ -22,6 +22,7 @@
 .sidebar-nav {
     flex: 1;
     padding: 0 15px;
+    overflow: hidden;
 }
 
 .sidebar-link {
@@ -35,12 +36,19 @@
     margin-bottom: 8px;
     font-weight: 500;
     transition: all 0.3s ease;
+    overflow: hidden;
 }
 
 .sidebar-link .icon {
     font-size: 1.2rem;
     width: 24px;
+    height: 24px;       
     text-align: center;
+    overflow: hidden;
+    display: flex;       
+    align-items: center; 
+    justify-content: center;
+    flex-shrink: 0;    
 }
 
 .sidebar-link:hover {

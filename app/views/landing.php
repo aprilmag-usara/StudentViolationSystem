@@ -12,8 +12,8 @@
     
     <header>
         <div class="logo-container">
-            <img src="assets/img/logo.png" alt="SVS Logo" class="logo-img">
-            <span class="logo-text">SVS.</span>
+            <img src="assets/img/logos2.png" alt="SVS Logo" class="logo-img">
+            <span class="logo-text">Student Violation System</span>
         </div>
         <div class="nav-buttons">
             <a href="index.php?url=auth/login" class="btn btn-login">Login</a>
@@ -29,15 +29,15 @@
                 
                 <div class="features">
                     <div class="feature-item">
-                        <div class="feature-icon">🛡️</div>
+                        <div class="feature-icon"><img src="assets/img/icons/secu.svg" alt="Security Icon" width="50" height="50" ></div>
                         <span>Security First</span>
                     </div>
                     <div class="feature-item">
-                        <div class="feature-icon">📊</div>
+                        <div class="feature-icon"><img src="assets/img/icons/analytics.svg" alt="Analytics Icon" width="50" height="50"></div>
                         <span>Real-time Analytics</span>
                     </div>
                     <div class="feature-item">
-                        <div class="feature-icon">⚡</div>
+                        <div class="feature-icon"><img src="assets/img/icons/lightning.svg" alt="Fast Response Icon" width="50" height="50"></div>
                         <span>Fast Response</span>
                     </div>
                 </div>
@@ -67,7 +67,7 @@
     <footer>
         <div class="footer-content">
             <div class="logo-container">
-                <span class="logo-text">SVS.</span>
+                <span class="logo-text">SVS</span>
             </div>
             <div class="footer-links">
                 <span>Privacy Policy</span>

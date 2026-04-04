@@ -14,7 +14,7 @@
     <div class="auth-page-container">
         <div class="auth-card max-w-450">
             <div class="logo-container flex-center mb-20">
-                <img src="assets/img/logo.png" alt="SVS Logo" class="logo-img">
+                <img src="assets/img/logos2.png" alt="SVS Logo" class="logo-img">
             </div>
             
             <h2>Welcome Back</h2>

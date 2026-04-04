@@ -61,10 +61,10 @@
 
                         <div class="profile-actions">
                             <button onclick="showEditModal()" class="action-btn">
-                                <span>✏️</span> Edit Profile
+                                <span><img src="assets/img/icons/profedit.svg" alt="Edit Profile" width="20" height="20"></span> Edit Profile
                             </button>
                             <button onclick="showPasswordModal()" class="action-btn">
-                                <span>🔒</span> Change Password
+                                <span><img src="assets/img/icons/pass.svg" alt="Change Password" width="20" height="20"></span> Change Password
                             </button>
                         </div>
                     </div>

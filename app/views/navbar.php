@@ -7,39 +7,39 @@ $active = $active ?? '';
     <!-- OSAS Sidebar Layout -->
     <aside class="sidebar">
         <div class="logo-container">
-            <img src="assets/img/logo.png" alt="SVS Logo" class="logo-img">
-            <span class="logo-text">SVS.</span>
+            <img src="assets/img/logos2.png" alt="SVS Logo" class="logo-img">
+            <span class="logo-text">Student Violation System</span>
         </div>
         
         <nav class="sidebar-nav">
             <a href="index.php?url=osas/dashboard" class="sidebar-link <?php echo $active === 'home' ? 'active' : ''; ?>">
-                <span class="icon">🏠</span> Dashboard
+                <span class="icon"><img src="assets/img/icons/dashboardd.svg" alt="Dashboard icon" width="24" height="24"></span> Dashboard
             </a>
             <a href="index.php?url=osas/students" class="sidebar-link <?php echo $active === 'students' ? 'active' : ''; ?>">
-                <span class="icon">👨‍🎓</span> Students
+                <span class="icon"><img src="assets/img/icons/student.svg" alt="Group Students icon" width="24" height="24"></span> Students
             </a>
             <a href="index.php?url=osas/guards" class="sidebar-link <?php echo $active === 'guards' ? 'active' : ''; ?>">
-                <span class="icon">🛡️</span> Guards
+                <span class="icon"><img src="assets/img/icons/shield.svg" alt="Building Shield icon" width="24" height="24"></span> Guards
             </a>
             <a href="index.php?url=osas/records" class="sidebar-link <?php echo $active === 'records' ? 'active' : ''; ?>">
-                <span class="icon">📋</span> Records
+                <span class="icon"><img src="assets/img/icons/clipboard.svg" alt="File Records icon" width="24" height="24"></span> Records
             </a>
             
             <a href="#" id="osasNotifLink" class="sidebar-link relative-pos">
-                <span class="icon">🔔</span> Notifications
+                <span class="icon"><img src="assets/img/icons/notification.svg" alt="Add Bell Notification icon" width="24" height="24"></span> Notifications
                 <?php if (isset($unreadCount) && $unreadCount > 0): ?>
                     <span class="notif-badge-sidebar"><?php echo $unreadCount; ?></span>
                 <?php endif; ?>
             </a>
 
             <a href="index.php?url=osas/profile" class="sidebar-link <?php echo $active === 'profile' ? 'active' : ''; ?>">
-                <span class="icon">👤</span> Profile
+                <span class="icon"><img src="assets/img/icons/userpro.svg" alt="Profile icon" width="25" height="25"></span> Profile
             </a>
         </nav>
 
         <div class="sidebar-footer">
             <a href="#" id="osasLogoutBtn" class="sidebar-link logout-link">
-                <span class="icon">🚪</span> Log Out
+                <span class="icon"><img src="assets/img/icons/logouts.svg" alt="Log Out icon" width="30" height="30"></span> Log Out
             </a>
         </div>
     </aside>
@@ -48,8 +48,8 @@ $active = $active ?? '';
     <!-- Student & Guard Top Navigation Bar -->
     <nav class="navbar">
         <div class="logo-container">
-            <img src="assets/img/logo.png" alt="SVS Logo" class="logo-img">
-            <span class="logo-text">SVS.</span>
+            <img src="assets/img/logos2.png" alt="SVS Logo" class="logo-img">
+            <span class="logo-text">Student Violation System</span>
         </div>
         <ul class="nav-links">
             <li><a href="index.php?url=<?php echo $role; ?>/dashboard" class="<?php echo $active === 'home' ? 'active' : ''; ?>">Home Page</a></li>

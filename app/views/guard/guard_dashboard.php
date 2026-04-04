@@ -41,7 +41,7 @@
                 </div>
 
                 <div class="scanner-area" id="scannerArea">
-                    <div id="scannerIcon" class="scanner-icon">📷</div>
+                    <div id="scannerIcon" class="scanner-icon"><img src="https://proicons.com/icon/11866.svg" alt="Camera icon" width="70" height="70"></div>
                     <h4 id="scannerTitle">QR Code Scanner</h4>
                     <p id="scannerDesc" class="scanner-desc">Position the student ID QR code within the frame</p>
                     

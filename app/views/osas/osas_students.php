@@ -24,7 +24,7 @@
                     <p>View and manage all registered students in the system.</p>
                 </div>
                 <div class="search-container max-w-400 w-100">
-                    <span class="fs-1-2 opacity-50 mr-10">🔍</span>
+                    <span class="fs-1-2 opacity-50 mr-10"><img src="assets/img/icons/search.svg" alt="Magnifying Glass icon" width="30" height="30"></span>
                     <input type="text" id="studentSearch" placeholder="Search by name or ID number..." class="search-input-clear w-100">
                     <div id="searchDropdown" class="search-results-dropdown"></div>
                 </div>
@@ -32,7 +32,7 @@
         </div>
 
         <div id="noResults" class="text-center py-60 display-none">
-            <div class="fs-3-0 mb-10">🔍</div>
+            <div class="fs-3-0 mb-10"><img src="assets/img/icons/search.svg" alt="Magnifying Glass icon" width="35" height="35"></div>
             <h2 class="text-white-50">No students found</h2>
             <p class="text-white-30">Try searching for a different name or ID number.</p>
         </div>
