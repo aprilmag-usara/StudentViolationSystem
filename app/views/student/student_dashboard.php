@@ -85,7 +85,7 @@
                         </div>
                     <?php else: ?>
                         <div class="text-center py-60">
-                            <div class="empty-state-icon mb-20">🎉</div>
+                            <div class="empty-state-icon mb-20"><img src="assets/img/icons/celeb.svg" alt="Clean Record" height="70" width="70"></div>
                             <h2 class="text-mint-green mb-10">You're All Clear!</h2>
                             <p class="text-white-50 fw-300 fs-1-1">You have a clean record. Keep it up and maintain good discipline!</p>
                         </div>

@@ -63,7 +63,7 @@
                 <?php endwhile; ?>
             <?php else: ?>
                 <div class="text-center p-40">
-                    <div class="fs-4-0 mb-20 opacity-20">🔔</div>
+                    <div class="fs-4-0 mb-20 opacity-20"><img src="assets/img/icons/notification.svg" alt="No Notifications" height="50" width="50"></div>
                     <h3 class="text-white-50">No notifications found</h3>
                     <p class="text-white-30">You're all caught up!</p>
                 </div>

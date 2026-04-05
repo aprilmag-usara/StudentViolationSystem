@@ -83,7 +83,7 @@
                 </div>
             <?php else: ?>
                 <div class="text-center py-50">
-                    <div class="fs-3-0 mb-15">📋</div>
+                    <div class="fs-3-0 mb-15"><img src="assets/img/icons/notebook.svg" alt="Records" height="50" width="50"></div>
                     <h3>No Records Found</h3>
                     <p class="text-white-50">You haven't recorded any violations yet.</p>
                 </div>
