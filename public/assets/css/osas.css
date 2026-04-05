@@ -16,6 +16,12 @@
     border-radius: 24px;
     position: relative;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    min-height: 200px; /* Fixed height for consistent alignment */
+    justify-content: center;
 }
 
 .stat-card::after {
@@ -30,23 +36,45 @@
 }
 
 .stat-icon {
-    font-size: 2rem;
-    margin-bottom: 15px;
-    display: block;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 40px; /* Consistent icon container height */
+}
+
+.stat-icon img {
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+}
+
+.stat-info {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 
 .stat-info h3 {
-    font-size: 0.85rem;
+    font-size: 0.75rem;
     text-transform: uppercase;
     color: rgba(255, 255, 255, 0.5);
-    letter-spacing: 1px;
-    margin-bottom: 5px;
+    letter-spacing: 1.2px;
+    margin-bottom: 15px;
+    min-height: 2.5rem; /* Ensure label area is consistent */
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .stat-info .value {
     font-size: 2.2rem;
     font-weight: 700;
     color: white;
+    line-height: 1;
+    margin: 0;
 }
 
 /* Table Section Title */

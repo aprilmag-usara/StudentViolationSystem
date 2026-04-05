@@ -32,35 +32,35 @@
 
         <div class="osas-stats-grid">
                 <div class="stat-card">
-                    <span class="stat-icon"><img src="assets/img/icons/stat.svg" alt="Statistics icon" width="50" height="50"></span>
+                    <span class="stat-icon"><img src="assets/img/icons/stat.svg" alt="Statistics icon"></span>
                     <div class="stat-info">
                         <h3>Total Violations</h3>
                         <div class="value"><?php echo $stats['total_violations']; ?></div>
                     </div>
                 </div>
                 <div class="stat-card">
-                    <span class="stat-icon text-orange"><img src="assets/img/icons/pending2.svg" alt="Pending Actions icon" width="50" height="50"></span>
+                    <span class="stat-icon text-orange"><img src="assets/img/icons/pending2.svg" alt="Pending Actions icon"></span>
                     <div class="stat-info">
                         <h3>Pending Actions</h3>
                         <div class="value"><?php echo $stats['pending_violations']; ?></div>
                     </div>
                 </div>
                 <div class="stat-card">
-                    <span class="stat-icon text-error"><img src="assets/img/icons/cautions.svg" alt="Caution icon" width="50" height="50"></span>
+                    <span class="stat-icon text-error"><img src="assets/img/icons/cautions.svg" alt="Caution icon"></span>
                     <div class="stat-info">
                         <h3>Major Cases</h3>
                         <div class="value"><?php echo $stats['major_violations']; ?></div>
                     </div>
                 </div>
                 <div class="stat-card">
-                    <span class="stat-icon text-yellow"><img src="assets/img/icons/lists.svg" alt="Bxs List Ul Square icon" width="50" height="50"></span>
+                    <span class="stat-icon text-yellow"><img src="assets/img/icons/lists.svg" alt="Bxs List Ul Square icon"></span>
                     <div class="stat-info">
                         <h3>Minor Cases</h3>
                         <div class="value"><?php echo $stats['minor_violations']; ?></div>
                     </div>
                 </div>
                 <div class="stat-card">
-                    <span class="stat-icon text-danger"><img src="assets/img/icons/expel.svg" alt="Expulsion icon" width="50" height="50"></span>
+                    <span class="stat-icon text-danger"><img src="assets/img/icons/expel.svg" alt="Expulsion icon"></span>
                     <div class="stat-info">
                         <h3>Expulsions</h3>
                         <div class="value"><?php echo $stats['expulsions']; ?></div>

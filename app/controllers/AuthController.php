@@ -30,6 +30,7 @@ class AuthController extends BaseController {
         echo $this->render_view('login', ['message' => $message]);
     }
 
+
     public function signup() {
         $message = "";
         $formData = [];
