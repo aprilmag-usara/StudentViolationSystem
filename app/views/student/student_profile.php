@@ -16,26 +16,32 @@
     <?php include __DIR__ . '/../navbar.php'; ?>
 
     <!-- Edit Profile Modal -->
-    <div id="editProfileModal" class="modal-overlay">
-        <div class="modal-content text-left">
-            <span class="modal-close" onclick="hideEditModal()">&times;</span>
-            <h2 class="mb-20">Edit Profile</h2>
-            <form method="POST" action="index.php?url=student/profile" class="flex-column gap-20">
-                <div class="form-group">
-                    <label>Username</label>
-                    <input type="text" name="username" value="<?php echo htmlspecialchars($studentInfo['username']); ?>" required class="form-input-styled">
-                </div>
-                <div class="form-group">
-                    <label>Bio</label>
-                    <textarea name="bio" rows="4" class="form-textarea-styled"><?php echo htmlspecialchars($studentInfo['bio'] ?? ''); ?></textarea>
-                </div>
-                <div class="modal-buttons">
-                    <button type="button" class="modal-btn modal-btn-no" onclick="hideEditModal()">Cancel</button>
-                    <button type="submit" name="update_profile" class="modal-btn modal-btn-yes">Update Profile</button>
-                </div>
-            </form>
-        </div>
+<div id="editProfileModal" class="modal-overlay">
+    <div class="modal-content text-left">
+        <span class="modal-close" onclick="hideEditModal()">&times;</span>
+        <h2 class="mb-20">Edit Profile</h2>
+        <form method="POST" action="index.php?url=student/profile" class="flex-column gap-20">
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" name="username" value="<?php echo htmlspecialchars($studentInfo['username'] ?? ''); ?>" required class="form-input-styled">
+            </div>
+            
+            <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" name="full_name" value="<?php echo htmlspecialchars($studentInfo['full_name'] ?? ''); ?>" required class="form-input-styled">
+            </div>
+
+            <div class="form-group">
+                <label>Bio</label>
+                <textarea name="bio" rows="4" class="form-textarea-styled"><?php echo htmlspecialchars($studentInfo['bio'] ?? ''); ?></textarea>
+            </div>
+            <div class="modal-buttons">
+                <button type="button" class="modal-btn modal-btn-no" onclick="hideEditModal()">Cancel</button>
+                <button type="submit" name="update_profile" class="modal-btn modal-btn-yes">Update Profile</button>
+            </div>
+        </form>
     </div>
+</div>
 
     <!-- Change Password Modal -->
     <div id="passwordModal" class="modal-overlay">

@@ -42,9 +42,9 @@ class User {
         return $stmt->execute();
     }
 
-    public function updateProfile($userId, $username, $bio) {
-        $stmt = $this->conn->prepare("UPDATE users SET username = ?, bio = ? WHERE id = ?");
-        $stmt->bind_param("ssi", $username, $bio, $userId);
+    public function updateProfile($userId, $username, $bio, $full_name) {
+        $stmt = $this->conn->prepare("UPDATE users SET username = ?, bio = ?, full_name = ? WHERE id = ?");
+        $stmt->bind_param("sssi", $username, $bio, $full_name, $userId);
         return $stmt->execute();
     }
 

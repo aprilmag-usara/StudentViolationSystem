@@ -23,7 +23,6 @@ class StudentController extends BaseController {
         
         // If profile is missing, redirect to a setup page or show error
         if (!$studentInfo) {
-            // For now, let's just provide a default array to prevent crash
             $studentInfo = [
                 'full_name' => $_SESSION['username'],
                 'student_id_number' => 'N/A',
@@ -85,7 +84,11 @@ class StudentController extends BaseController {
             if (isset($_POST['update_profile'])) {
                 $username = $_POST['username'];
                 $bio = $_POST['bio'];
-                if ($this->userModel->updateProfile($userId, $username, $bio)) {
+                // NEW: Added full_name from POST
+                $full_name = $_POST['full_name']; 
+                
+                // REVISED: Passing $full_name to the model function
+                if ($this->userModel->updateProfile($userId, $username, $bio, $full_name)) {
                     $_SESSION['username'] = $username;
                     $message = "Profile updated successfully!";
                 } else {
@@ -151,9 +154,10 @@ class StudentController extends BaseController {
         ];
     }
 
-    private function updateProfile($userId, $username, $bio) {
-        $stmt = $this->db->prepare("UPDATE users SET username = ?, bio = ? WHERE id = ?");
-        $stmt->bind_param("ssi", $username, $bio, $userId);
+    // REVISED: Added $full_name to the internal update helper if you use it
+    private function updateProfile($userId, $username, $bio, $full_name) {
+        $stmt = $this->db->prepare("UPDATE users SET username = ?, bio = ?, full_name = ? WHERE id = ?");
+        $stmt->bind_param("sssi", $username, $bio, $full_name, $userId);
         return $stmt->execute();
     }
 
