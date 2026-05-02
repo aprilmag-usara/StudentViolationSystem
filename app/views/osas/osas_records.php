@@ -22,13 +22,15 @@
             <p>Full administrative control over all student records.</p>
         </div>
 
-            <?php if (!empty($message)): ?>
-                <div class="toast-container" id="toast">
-                    <div class="toast-message">
-                        <?php echo $message; ?>
-                    </div>
-                </div>
-            <?php endif; ?>
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                <?php if (!empty($message)): ?>
+                    const msg = "<?php echo addslashes($message); ?>";
+                    const isError = msg.toLowerCase().includes('error') || msg.toLowerCase().includes('failed');
+                    showToast(isError ? 'Action Failed' : 'Success', msg, isError ? 'error' : 'success');
+                <?php endif; ?>
+            });
+        </script>
 
             <div class="glass-card">
                 <div class="section-header">
@@ -49,7 +51,7 @@
                     <tbody>
                         <?php if ($activeViolations && $activeViolations->num_rows > 0): ?>
                             <?php while ($v = $activeViolations->fetch_assoc()): ?>
-                            <tr>
+                            <tr id="violation-<?php echo $v['id']; ?>">
                                 <td>
                                     <div class="fw-600"><?php echo htmlspecialchars($v['student_name']); ?></div>
                                     <div class="fs-0-7 text-white-50"><?php echo htmlspecialchars($v['course']); ?></div>
@@ -176,14 +178,14 @@
                 </div>
 
                 <div class="mb-20">
-                    <label class="info-label">Violation Description</label>
-                    <textarea name="description" id="edit_desc" class="form-textarea mt-8"></textarea>
+                    <label class="form-label">Violation Description</label>
+                    <textarea name="description" id="edit_desc" class="form-textarea" placeholder="Enter violation details..."></textarea>
                 </div>
 
                 <div class="form-row">
-                    <div>
-                        <label class="info-label">Current Status</label>
-                        <select name="status" id="edit_status" class="form-select mt-8">
+                    <div class="form-group">
+                        <label class="form-label">Current Status</label>
+                        <select name="status" id="edit_status" class="form-select">
                             <option value="pending">Pending</option>
                             <option value="in_progress">In Progress</option>
                             <option value="warning_sent">Warning Sent</option>
@@ -192,9 +194,9 @@
                             <option value="dropped">Dropped</option>
                         </select>
                     </div>
-                    <div>
-                        <label class="info-label">Assigned Sanction</label>
-                        <input type="text" name="sanction" id="edit_sanction" class="search-input px-12 mt-8 border-radius-12 fs-0-9" placeholder="e.g. 3 days cleaning">
+                    <div class="form-group">
+                        <label class="form-label">Assigned Sanction</label>
+                        <input type="text" name="sanction" id="edit_sanction" class="form-input" placeholder="e.g. 3 days cleaning">
                     </div>
                 </div>
 

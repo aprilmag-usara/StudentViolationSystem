@@ -25,7 +25,7 @@ $active = $active ?? '';
                 <span class="icon"><img src="assets/img/icons/clipboard.svg" alt="File Records icon" width="24" height="24"></span> Records
             </a>
             
-            <a href="#" id="osasNotifLink" class="sidebar-link relative-pos">
+            <a href="index.php?url=osas/notifications" class="sidebar-link relative-pos <?php echo $active === 'notifications' ? 'active' : ''; ?>">
                 <span class="icon"><img src="assets/img/icons/notification.svg" alt="Add Bell Notification icon" width="24" height="24"></span> Notifications
                 <?php if (isset($unreadCount) && $unreadCount > 0): ?>
                     <span class="notif-badge-sidebar"><?php echo $unreadCount; ?></span>
@@ -77,17 +77,14 @@ $active = $active ?? '';
         <?php endif; ?>
     </div>
     <div class="notif-list-container">
-        <?php if (isset($notifications) && $notifications && $notifications->num_rows > 0): ?>
-            <?php 
-            $notifications->data_seek(0);
-            while($n = $notifications->fetch_assoc()): 
-            ?>
+        <?php if (isset($notifications) && !empty($notifications)): ?>
+            <?php foreach($notifications as $n): ?>
                 <div class="notif-item <?php echo $n['is_read'] ? '' : 'unread'; ?>" 
-                     data-url="index.php?url=<?php echo $role; ?>/<?php echo ($role === 'osas') ? 'dashboard' : 'records'; ?><?php echo isset($n['violation_id']) ? '&violation_id=' . $n['violation_id'] : ''; ?>">
+                     data-url="index.php?url=<?php echo $role; ?>/records<?php echo isset($n['violation_id']) ? '&violation_id=' . $n['violation_id'] : ''; ?>">
                     <div class="notif-msg"><?php echo htmlspecialchars($n['message']); ?></div>
                     <div class="notif-time"><?php echo date('M d, h:i A', strtotime($n['created_at'])); ?></div>
                 </div>
-            <?php endwhile; ?>
+            <?php endforeach; ?>
         <?php else: ?>
             <div class="p-30 text-center text-white-30 fs-0-9">
                 No notifications yet.

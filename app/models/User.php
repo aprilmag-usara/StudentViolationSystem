@@ -152,9 +152,23 @@ class User {
     }
 
     public function createNotification($userId, $message, $violationId = null) {
-        $stmt = $this->conn->prepare("INSERT INTO notifications (user_id, message, violation_id) VALUES (?, ?, ?)");
-        $stmt->bind_param("isi", $userId, $message, $violationId);
-        return $stmt->execute();
+        if ($violationId) {
+            $stmt = $this->conn->prepare("INSERT INTO notifications (user_id, message, violation_id) VALUES (?, ?, ?)");
+            if ($stmt) {
+                $stmt->bind_param("isi", $userId, $message, $violationId);
+                return $stmt->execute();
+            }
+        }
+        
+        // Fallback or if violationId is null
+        $stmt = $this->conn->prepare("INSERT INTO notifications (user_id, message) VALUES (?, ?)");
+        if ($stmt) {
+            $stmt->bind_param("is", $userId, $message);
+            return $stmt->execute();
+        }
+        
+        error_log("Failed to create notification: " . $this->conn->error);
+        return false;
     }
 
     public function getOsasAdmins() {

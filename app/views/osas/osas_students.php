@@ -23,15 +23,30 @@
                     <h1>Student Management</h1>
                     <p>View and manage all registered students in the system.</p>
                 </div>
-                <div class="search-container max-w-400 w-100">
-                    <span class="fs-1-2 opacity-50 mr-10"><img src="assets/img/icons/search.svg" alt="Magnifying Glass icon" width="30" height="30"></span>
-                    <input type="text" id="studentSearch" placeholder="Search by name or ID number..." class="search-input-clear w-100">
-                    <div id="searchDropdown" class="search-results-dropdown"></div>
+                <div class="flex-row align-center gap-20">
+                    <button class="btn-primary-enhanced" onclick="showAddStudentModal()">
+                        <span>+</span> Add New Student
+                    </button>
+                    <div class="search-container max-w-400">
+                        <span class="fs-1-2 opacity-50 mr-10"><img src="assets/img/icons/search.svg" alt="Magnifying Glass icon" width="24" height="24"></span>
+                        <input type="text" id="studentSearch" placeholder="Search by name or ID number..." class="search-input-clear">
+                        <div id="searchDropdown" class="search-results-dropdown"></div>
+                    </div>
                 </div>
             </div>
+            
+            <script>
+                document.addEventListener('DOMContentLoaded', () => {
+                    <?php if (!empty($message)): ?>
+                        const msg = "<?php echo addslashes($message); ?>";
+                        const isError = msg.toLowerCase().includes('error') || msg.toLowerCase().includes('failed');
+                        showToast(isError ? 'Action Failed' : 'Success', msg, isError ? 'error' : 'success');
+                    <?php endif; ?>
+                });
+            </script>
         </div>
 
-        <div id="noResults" class="text-center py-60 display-none">
+        <div id="noResults" class="text-center py-60 display-none" style="display: none;">
             <div class="fs-3-0 mb-10"><img src="assets/img/icons/search.svg" alt="Magnifying Glass icon" width="35" height="35"></div>
             <h2 class="text-white-50">No students found</h2>
             <p class="text-white-30">Try searching for a different name or ID number.</p>
@@ -39,10 +54,10 @@
 
             <?php foreach ($studentsByYear as $year => $students): ?>
                 <?php if (count($students) > 0): ?>
-                    <div class="year-section" id="section-<?php echo str_replace(' ', '-', $year); ?>">
+                    <section class="year-section" id="section-<?php echo str_replace(' ', '-', $year); ?>">
                         <div class="year-title">
-                            <?php echo $year; ?>
-                            <span class="fs-0-8 fw-400 opacity-50"><?php echo count($students); ?> Students</span>
+                            <span><?php echo $year; ?> Level</span>
+                            <span class="year-count-badge"><?php echo count($students); ?> Registered Students</span>
                         </div>
                         <div class="student-grid">
                             <?php foreach ($students as $s): ?>
@@ -57,12 +72,12 @@
                                     <div class="student-basic">
                                         <h4><?php echo htmlspecialchars($s['full_name']); ?></h4>
                                         <p><?php echo htmlspecialchars($s['student_id_number']); ?></p>
-                                        <p class="text-mint-green fw-600"><?php echo htmlspecialchars($s['role']); ?></p>
+                                        <p class="text-mint-green fw-600 fs-0-7 mt-5"><?php echo htmlspecialchars($s['course'] . ' - ' . $s['section']); ?></p>
                                     </div>
                                 </div>
                             <?php endforeach; ?>
                         </div>
-                    </div>
+                    </section>
                 <?php endif; ?>
             <?php endforeach; ?>
         </main>
@@ -77,47 +92,170 @@
                 <p class="mt-15">Fetching student profile...</p>
             </div>
             
-            <div id="modalContent" class="display-none flex-column align-center">
-                <!-- Top: Centralized Profile Header -->
-                <div class="profile-header-centralized text-center mb-40">
-                    <div class="avatar-container mb-20">
-                        <img id="det_photo" src="" class="student-avatar-large shadow-glow" style="width: 130px; height: 130px; border-radius: 50%; border: 3px solid var(--sage-green);">
-                    </div>
-                    <h2 id="det_name" class="fs-2-2 fw-700 text-white mb-5"></h2>
-                    <p id="det_id" class="text-sage-green fs-1-1 fw-600 font-monospace tracking-wide"></p>
-                </div>
-                
-                <!-- Middle: Information Grid -->
-                <div class="info-grid-centralized mb-50 w-100">
-                    <div class="glass-info-card">
-                        <div class="info-group">
-                            <span class="info-label-styled">Course</span>
-                            <div id="det_course" class="info-value-styled"></div>
+            <div id="modalContent" class="display-none">
+                <div class="student-profile-layout">
+                    <!-- Left: Profile Summary -->
+                    <div class="profile-summary-side">
+                        <div class="avatar-container-large mb-20">
+                            <img id="det_photo" src="" class="student-avatar-large shadow-glow">
                         </div>
-                        <div class="info-group">
-                            <span class="info-label-styled">Year & Section</span>
-                            <div id="det_year_sec" class="info-value-styled"></div>
-                        </div>
-                        <div class="info-group grid-column-full border-top-glass pt-20 mt-10">
-                            <span class="info-label-styled">Biography</span>
-                            <div id="det_bio" class="info-value-styled bio-text"></div>
+                        <h2 id="det_name" class="text-white mb-5"></h2>
+                        <p id="det_id" class="text-sage-green fw-600 font-monospace"></p>
+                        
+                        <div class="admin-actions-vertical mt-30">
+                            <button class="btn-secondary w-100 mb-10" onclick="showEditStudentModal()">Edit Details</button>
+                            <button class="btn-danger w-100" onclick="confirmDeleteStudent()">Delete Account</button>
                         </div>
                     </div>
-                </div>
 
-                <!-- Bottom: Violation History -->
-                <div class="violation-history-centralized w-100">
-                    <div class="section-divider mb-30">
-                        <span class="divider-line"></span>
-                        <h3 class="divider-text">Violation History</h3>
-                        <span class="divider-line"></span>
-                    </div>
-                    <p class="text-center text-white-40 fs-0-9 mb-25">Chronological record of disciplinary actions and conduct.</p>
-                    <div id="det_history" class="history-list-modern">
-                        <!-- Filled by JS -->
+                    <!-- Right: Detailed Info & History -->
+                    <div class="profile-details-side">
+                        <div class="glass-info-card-horizontal mb-30">
+                            <div class="info-group-minimal">
+                                <span class="info-label-styled">Course</span>
+                                <div id="det_course" class="info-value-styled"></div>
+                            </div>
+                            <div class="info-group-minimal">
+                                <span class="info-label-styled">Year & Section</span>
+                                <div id="det_year_sec" class="info-value-styled"></div>
+                            </div>
+                            <div class="info-group-minimal grid-column-full">
+                                <span class="info-label-styled">Biography</span>
+                                <div id="det_bio" class="info-value-styled bio-text"></div>
+                            </div>
+                        </div>
+
+                        <div class="violation-history-section">
+                            <div class="section-divider-minimal mb-20">
+                                <h3 class="divider-text">Violation History</h3>
+                                <span class="divider-line"></span>
+                            </div>
+                            <div id="det_history" class="history-list-modern-scroll">
+                                <!-- Filled by JS -->
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Add Student Modal -->
+    <div id="addStudentModal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="modal-close" onclick="hideAddStudentModal()">&times;</span>
+            <h2>Add New Student</h2>
+            <form action="index.php?url=osas/students" method="POST" class="standard-form">
+                <input type="hidden" name="add_student" value="1">
+                <div class="form-group">
+                    <label class="form-label">Username</label>
+                    <input type="text" name="username" class="form-input" required placeholder="e.g. juandelacruz">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Full Name</label>
+                    <input type="text" name="full_name" class="form-input" required placeholder="e.g. Juan De La Cruz">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Student ID Number</label>
+                    <input type="text" name="student_id" class="form-input" required placeholder="e.g. 21-12345">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Course</label>
+                        <select name="course" class="form-select" required>
+                            <option value="BSIT">BSIT</option>
+                            <option value="BSIS">BSIS</option>
+                            <option value="BIT">BIT</option>
+                            <option value="BTVTED">BTVTED</option>
+                            <option value="BSECE">BSECE</option>
+                            <option value="BSCPE">BSCPE</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Year Level</label>
+                        <select name="year_level" class="form-select" required>
+                            <option value="1">1st Year</option>
+                            <option value="2">2nd Year</option>
+                            <option value="3">3rd Year</option>
+                            <option value="4">4th Year</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Section</label>
+                    <input type="text" name="section" class="form-input" required placeholder="e.g. A, B, C">
+                </div>
+                <p class="text-white-40 fs-0-8 mb-20 text-center">Note: Default password will be 'student123'</p>
+                <div class="flex-row justify-center mt-30">
+                    <button type="submit" class="btn-primary-enhanced px-40">Create Student Account</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Student Modal -->
+    <div id="editStudentModal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="modal-close" onclick="hideEditStudentModal()">&times;</span>
+            <h2>Edit Student Details</h2>
+            <form action="index.php?url=osas/students" method="POST" class="standard-form">
+                <input type="hidden" name="update_student" value="1">
+                <input type="hidden" name="user_id" id="edit_user_id">
+                <div class="form-group">
+                    <label class="form-label">Full Name</label>
+                    <input type="text" name="full_name" id="edit_full_name" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Student ID Number</label>
+                    <input type="text" name="student_id" id="edit_student_id" class="form-input" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Course</label>
+                        <select name="course" id="edit_course" class="form-select" required>
+                            <option value="BSIT">BSIT</option>
+                            <option value="BSIS">BSIS</option>
+                            <option value="BIT">BIT</option>
+                            <option value="BTVTED">BTVTED</option>
+                            <option value="BSECE">BSECE</option>
+                            <option value="BSCPE">BSCPE</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Year Level</label>
+                        <select name="year_level" id="edit_year_level" class="form-select" required>
+                            <option value="1">1st Year</option>
+                            <option value="2">2nd Year</option>
+                            <option value="3">3rd Year</option>
+                            <option value="4">4th Year</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Section</label>
+                    <input type="text" name="section" id="edit_section" class="form-input" required>
+                </div>
+                <div class="flex-row justify-center mt-30">
+                    <button type="submit" class="btn-primary-enhanced px-40">Update Student Details</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteStudentModal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="modal-close" onclick="hideDeleteStudentModal()">&times;</span>
+            <h2>Delete Student Account?</h2>
+            <p class="mb-30 text-white-70">This will permanently remove the student and all their violation records. This action cannot be undone.</p>
+            <form action="index.php?url=osas/students" method="POST">
+                <input type="hidden" name="delete_student" value="1">
+                <input type="hidden" name="user_id" id="delete_user_id">
+                <div class="modal-buttons">
+                    <button type="button" class="modal-btn modal-btn-no" onclick="hideDeleteStudentModal()">Cancel</button>
+                    <button type="submit" class="modal-btn modal-btn-yes">Yes, Delete Account</button>
+                </div>
+            </form>
         </div>
     </div>
 

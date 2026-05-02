@@ -298,53 +298,59 @@ function viewStudent(id) {
                 'det_id': s.role === 'STUDENT' ? s.student_id_number : s.role,
                 'det_course': s.role === 'STUDENT' ? s.course : 'System Staff',
                 'det_year_sec': s.role === 'STUDENT' ? `${s.year_level} - ${s.section}` : 'N/A',
-                'det_bio': s.bio || 'No bio provided.'
+                'det_bio': s.bio || 'No biography provided.'
             };
 
-            for (const [id, value] of Object.entries(fields)) {
+            // Store student data for edit/delete
+            window.currentStudent = s;
+
+            for (const [id, val] of Object.entries(fields)) {
                 const el = document.getElementById(id);
-                if (el) el.innerText = value;
+                if (el) el.innerText = val;
             }
-            
+
             const photoEl = document.getElementById('det_photo');
             if (photoEl) {
-                const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(s.full_name)}&background=1b4332&color=fff&size=120`;
+                const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(s.full_name)}&background=1b4332&color=fff&size=150`;
                 photoEl.src = s.profile_photo && s.profile_photo !== 'default_profile.png' 
                     ? `assets/img/profiles/${s.profile_photo}` 
                     : avatarUrl;
             }
 
-            const historyContainer = document.getElementById('det_history');
-            if (historyContainer) {
-                historyContainer.innerHTML = '';
+            const historyList = document.getElementById('det_history');
+            if (historyList) {
+                historyList.innerHTML = '';
                 if (vs && vs.length > 0) {
                     vs.forEach(v => {
                         const item = document.createElement('div');
-                        item.className = `history-item-modern ${v.violation_type.toLowerCase()}`;
+                        item.className = 'history-item-minimal';
                         item.innerHTML = `
-                            <div style="display:flex; justify-content:space-between; margin-bottom:8px; align-items:center;">
-                                <span class="v-type-badge ${v.violation_type.toLowerCase()}" style="margin-bottom:0; font-size:0.65rem;">${v.violation_type} Violation</span>
-                                <span style="font-size:0.8rem; opacity:0.5; font-weight:500;">${new Date(v.violation_time).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                            <div class="history-item-top">
+                                <span class="badge-v-type ${v.violation_type.toLowerCase()}">${v.violation_type}</span>
+                                <span class="history-item-date">${new Date(v.created_at).toLocaleDateString(undefined, {month:'short', day:'numeric', year:'numeric'})}</span>
                             </div>
-                            <div style="font-size:1.05rem; color:white; font-weight:500; margin-bottom:10px;">${v.description}</div>
-                            <div class="flex-between align-center">
-                                <span style="font-size:0.8rem; color:var(--mint-green); font-weight:600;">Sanction: ${v.sanction || 'Pending review'}</span>
-                                <span class="status-pill-modern ${v.status.toLowerCase()}" style="padding:4px 12px; font-size:0.65rem;">${v.status.replace('_', ' ')}</span>
+                            <div class="history-item-desc">${v.description}</div>
+                            <div class="history-item-footer">
+                                <div class="reporter-info">
+                                    <span class="label">Reported by:</span>
+                                    <span class="value">${v.guard_name}</span>
+                                </div>
+                                <span class="status-indicator status-${v.status}">${v.status.replace('_', ' ')}</span>
                             </div>
                         `;
-                        historyContainer.appendChild(item);
+                        historyList.appendChild(item);
                     });
                 } else {
-                    historyContainer.innerHTML = '<div style="padding:60px; text-align:center; opacity:0.3; font-style:italic;">No disciplinary records found. This student has a clean conduct record.</div>';
+                    historyList.innerHTML = '<div class="no-records-placeholder">No violation history available.</div>';
                 }
             }
 
             loading.style.display = 'none';
-            content.style.display = 'grid';
+            content.style.display = 'block';
         })
         .catch(err => {
-            console.error('Error fetching student details:', err);
-            loading.innerText = 'Failed to load profile.';
+            console.error('Error:', err);
+            loading.innerText = 'Error loading student details.';
         });
 }
 
@@ -354,6 +360,72 @@ function hideStudentModal() {
         modal.style.display = 'none';
         toggleBodyScroll(false);
     }
+}
+
+// Student CRUD Modals
+function showAddStudentModal() {
+    const modal = document.getElementById('addStudentModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        toggleBodyScroll(true);
+    }
+}
+
+function hideAddStudentModal() {
+    const modal = document.getElementById('addStudentModal');
+    if (modal) {
+        modal.style.display = 'none';
+        toggleBodyScroll(false);
+    }
+}
+
+function showEditStudentModal() {
+    const s = window.currentStudent;
+    if (!s) return;
+
+    document.getElementById('edit_user_id').value = s.id;
+    document.getElementById('edit_full_name').value = s.full_name;
+    document.getElementById('edit_student_id').value = s.student_id_number;
+    
+    // Helper to set select value or add option if missing
+    const setSelectValue = (id, val) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        
+        // Try setting value
+        el.value = val;
+        
+        // If value not set (meaning option doesn't exist), add it
+        if (el.selectedIndex === -1 && val) {
+            const opt = document.createElement('option');
+            opt.value = val;
+            opt.text = val;
+            el.add(opt);
+            el.value = val;
+        }
+    };
+
+    setSelectValue('edit_course', s.course);
+    setSelectValue('edit_year_level', s.year_level);
+    document.getElementById('edit_section').value = s.section;
+
+    document.getElementById('editStudentModal').style.display = 'flex';
+}
+
+function hideEditStudentModal() {
+    document.getElementById('editStudentModal').style.display = 'none';
+}
+
+function confirmDeleteStudent() {
+    const s = window.currentStudent;
+    if (!s) return;
+
+    document.getElementById('delete_user_id').value = s.id;
+    document.getElementById('deleteStudentModal').style.display = 'flex';
+}
+
+function hideDeleteStudentModal() {
+    document.getElementById('deleteStudentModal').style.display = 'none';
 }
 
 // Student Search & Filtering (On-page)
@@ -372,23 +444,75 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 if (name.includes(query) || id.includes(query)) {
                     card.style.display = 'flex';
+                    card.classList.add('is-visible');
                 } else {
                     card.style.display = 'none';
+                    card.classList.remove('is-visible');
                 }
             });
 
             // Show/Hide sections based on visible cards
             let totalVisible = 0;
             sections.forEach(section => {
-                const visibleCards = section.querySelectorAll('.student-mini-card[style="display: flex;"]');
-                section.style.display = (visibleCards.length === 0 && query !== '') ? 'none' : 'block';
-                totalVisible += visibleCards.length;
+                const visibleInPage = section.querySelectorAll('.student-mini-card.is-visible').length;
+                if (query === '') {
+                    section.style.display = 'block';
+                    totalVisible++; // Just to ensure noResults stays hidden
+                } else {
+                    section.style.display = visibleInPage === 0 ? 'none' : 'block';
+                    totalVisible += visibleInPage;
+                }
             });
 
             // Handle empty state
             const noResults = document.getElementById('noResults');
             if (noResults) {
-                noResults.style.display = (totalVisible === 0 && query !== '') ? 'block' : 'none';
+                if (query === '') {
+                    noResults.classList.add('display-none');
+                    noResults.style.display = 'none';
+                } else {
+                    if (totalVisible === 0) {
+                        noResults.classList.remove('display-none');
+                        noResults.style.display = 'block';
+                    } else {
+                        noResults.classList.add('display-none');
+                        noResults.style.display = 'none';
+                    }
+                }
+            }
+        });
+
+        // Initialize cards as visible
+        document.querySelectorAll('.student-mini-card').forEach(c => c.classList.add('is-visible'));
+    }
+
+    // Guard Search & Filtering
+    const guardSearchInput = document.getElementById('guardSearch');
+    if (guardSearchInput) {
+        guardSearchInput.addEventListener('input', function() {
+            const query = this.value.toLowerCase().trim();
+            const cards = document.querySelectorAll('.guard-card');
+            let visibleCount = 0;
+
+            cards.forEach(card => {
+                const name = card.querySelector('h3').innerText.toLowerCase();
+                if (name.includes(query)) {
+                    card.style.display = 'flex';
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            const noResults = document.getElementById('noGuardResults');
+            if (noResults) {
+                if (query !== '' && visibleCount === 0) {
+                    noResults.style.display = 'block';
+                    noResults.classList.remove('display-none');
+                } else {
+                    noResults.style.display = 'none';
+                    noResults.classList.add('display-none');
+                }
             }
         });
     }
@@ -412,9 +536,25 @@ function hideEditGuardModal() {
     }
 }
 
+function showAddGuardModal() {
+    const modal = document.getElementById('addGuardModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        toggleBodyScroll(true);
+    }
+}
+
+function hideAddGuardModal() {
+    const modal = document.getElementById('addGuardModal');
+    if (modal) {
+        modal.style.display = 'none';
+        toggleBodyScroll(false);
+    }
+}
+
 // Generic Outside Click Handler for OSAS specific modals
 window.addEventListener('click', (e) => {
-    const modals = ['editProfileModal', 'passwordModal', 'editModal', 'guardModal', 'studentModal', 'editGuardModal'];
+    const modals = ['editProfileModal', 'passwordModal', 'editModal', 'guardModal', 'studentModal', 'editGuardModal', 'addGuardModal'];
     modals.forEach(id => {
         const modal = document.getElementById(id);
         if (modal && e.target === modal) {

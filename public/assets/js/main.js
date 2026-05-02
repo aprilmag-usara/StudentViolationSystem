@@ -15,6 +15,44 @@ function toggleBodyScroll(prevent) {
     }
 }
 
+// Global Toast Function
+window.showToast = function(title, message, type = 'success', duration = 3000) {
+    let container = document.querySelector('.toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.className = 'toast-container';
+        document.body.appendChild(container);
+    }
+
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    
+    toast.innerHTML = `
+        <div class="toast-content">
+            <div class="toast-message">${message}</div>
+        </div>
+        <div class="toast-progress">
+            <div class="toast-progress-fill"></div>
+        </div>
+    `;
+
+    container.appendChild(toast);
+
+    // Show animation
+    setTimeout(() => toast.classList.add('show'), 100);
+
+    // Progress bar animation
+    const progressFill = toast.querySelector('.toast-progress-fill');
+    progressFill.style.transition = `width ${duration}ms linear`;
+    setTimeout(() => progressFill.style.width = '0%', 100);
+
+    // Remove toast
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 500);
+    }, duration);
+};
+
 // Logout Modal Logic
 function showLogoutModal() {
     const modal = document.getElementById('logoutModal');
@@ -92,10 +130,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const violationId = urlParams.get('violation_id');
     if (violationId) {
-        const element = document.getElementById('violation-' + violationId);
-        if (element) {
-            // Give it a moment for potential tables to render/load
-            setTimeout(() => {
+        // Give it a moment for potential tables to render/load
+        setTimeout(() => {
+            const element = document.getElementById('violation-' + violationId);
+            if (element) {
                 element.classList.add('highlight-record');
                 element.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 
@@ -103,8 +141,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 setTimeout(() => {
                     element.classList.remove('highlight-record');
                 }, 3000);
-            }, 100);
-        }
+            }
+        }, 300);
     }
 
     // Initialize Toast

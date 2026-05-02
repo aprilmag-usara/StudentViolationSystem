@@ -62,7 +62,8 @@ class GuardController extends BaseController {
                 
                 // Notify all OSAS admins
                 $osasAdmins = $this->userModel->getOsasAdmins();
-                $notifMsg = "A new violation for " . $_POST['student_search_query'] . " was submitted by " . $_POST['recorded_by_guard_name'];
+                $studentName = $_POST['student_name'] ?? ($_POST['student_search_query'] ?? 'a student');
+                $notifMsg = "A new violation for " . $studentName . " was submitted by " . $_POST['recorded_by_guard_name'];
                 while($admin = $osasAdmins->fetch_assoc()) {
                     $this->userModel->createNotification($admin['id'], $notifMsg, $violationId);
                 }

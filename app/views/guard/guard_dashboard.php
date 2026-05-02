@@ -104,6 +104,7 @@
                     <h3 class="student-info-header">Record Violation</h3>
                     <form method="POST" action="index.php?url=guard/dashboard">
                         <input type="hidden" name="student_user_id" value="<?php echo $studentData['id']; ?>">
+                        <input type="hidden" name="student_name" value="<?php echo htmlspecialchars($full_name); ?>">
                         
                         <div class="mb-20">
                             <label class="fs-0-9 text-white-70">Violation Type</label>

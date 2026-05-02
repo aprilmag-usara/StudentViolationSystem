@@ -23,7 +23,7 @@
                     <h1>Notifications</h1>
                     <p>Stay updated on recent reports and system activity.</p>
                 </div>
-                <?php if ($notifications && $notifications->num_rows > 0): ?>
+                <?php if (!empty($notifications)): ?>
                     <div>
                         <a href="index.php?url=osas/mark_read" class="modal-btn modal-btn-yes px-25 no-underline">Mark All as Read</a>
                     </div>
@@ -40,34 +40,48 @@
         <?php endif; ?>
 
         <div class="max-w-800 mx-auto">
-            <?php if ($notifications && $notifications->num_rows > 0): ?>
-                <?php while ($n = $notifications->fetch_assoc()): ?>
-                    <div class="notif-card <?php echo $n['is_read'] ? '' : 'unread'; ?>">
-                        <div class="notif-content">
-                            <div class="notif-msg"><?php echo htmlspecialchars($n['message']); ?></div>
-                            <div class="notif-time"><?php echo date('M d, Y | h:i A', strtotime($n['created_at'])); ?></div>
-                        </div>
-                        <div class="notif-actions">
-                            <?php if (!$n['is_read']): ?>
-                                <form method="POST" class="display-inline">
-                                    <input type="hidden" name="notif_id" value="<?php echo $n['id']; ?>">
-                                    <button type="submit" name="mark_read" class="action-btn" title="Mark as read">✔️</button>
-                                </form>
-                            <?php endif; ?>
-                            <form method="POST" class="display-inline" onsubmit="return confirm('Delete this notification?');">
-                                <input type="hidden" name="notif_id" value="<?php echo $n['id']; ?>">
-                                <button type="submit" name="delete_notif" class="action-btn delete" title="Delete notification">🗑️</button>
-                            </form>
-                        </div>
-                    </div>
-                <?php endwhile; ?>
-            <?php else: ?>
-                <div class="text-center p-40">
-                    <div class="fs-4-0 mb-20 opacity-20">🔔</div>
-                    <h3 class="text-white-50">No notifications found</h3>
-                    <p class="text-white-30">You're all caught up!</p>
+            <div class="glass-card p-0 overflow-hidden">
+                <div class="p-20 border-bottom-glass flex-between align-center">
+                    <h3 class="m-0 text-sage-green">Recent Transactions</h3>
+                    <span class="fs-0-8 text-white-40"><?php echo count($notifications); ?> total</span>
                 </div>
-            <?php endif; ?>
+                
+                <?php if (!empty($notifications)): ?>
+                    <div class="notif-list-full">
+                        <?php foreach ($notifications as $n): ?>
+                            <div class="notif-row <?php echo $n['is_read'] ? '' : 'unread'; ?>">
+                                <div class="notif-indicator"></div>
+                                <div class="notif-main-content">
+                                    <div class="notif-msg"><?php echo htmlspecialchars($n['message']); ?></div>
+                                    <div class="notif-time"><?php echo date('M d, Y | h:i A', strtotime($n['created_at'])); ?></div>
+                                </div>
+                                <div class="notif-row-actions">
+                                    <?php if (!$n['is_read']): ?>
+                                        <form method="POST" class="display-inline">
+                                            <input type="hidden" name="notification_id" value="<?php echo $n['id']; ?>">
+                                            <button type="submit" name="mark_as_read" class="notif-btn-mini success" title="Mark as read">
+                                                <span>✓</span>
+                                            </button>
+                                        </form>
+                                    <?php endif; ?>
+                                    <form method="POST" class="display-inline" onsubmit="return confirm('Delete this notification?');">
+                                        <input type="hidden" name="notification_id" value="<?php echo $n['id']; ?>">
+                                        <button type="submit" name="delete_notification" class="notif-btn-mini delete" title="Delete notification">
+                                            <span>×</span>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php else: ?>
+                    <div class="text-center p-60">
+                        <div class="fs-4-0 mb-20 opacity-20">🔔</div>
+                        <h3 class="text-white-50">No notifications found</h3>
+                        <p class="text-white-30">You're all caught up!</p>
+                    </div>
+                <?php endif; ?>
+            </div>
         </div>
     </main>
 

@@ -142,7 +142,7 @@
             <!-- Recent Activity Table -->
             <div class="section-header">
                 <h2>Recent Violations</h2>
-                <a href="index.php?url=osas/violations" class="view-all-btn">View All Records →</a>
+                <a href="index.php?url=osas/records" class="view-all-btn">View All Records →</a>
             </div>
 
             <div class="glass-card">

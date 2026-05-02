@@ -70,6 +70,45 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Achievements & Certificates Section -->
+            <div class="achievements-section mt-40">
+                <div class="section-header-modern mb-30">
+                    <h3 class="text-sage-green fw-700">Certificates & Achievements</h3>
+                    <span class="divider-line-minimal"></span>
+                </div>
+                
+                <div class="achievements-grid">
+                    <div class="achievement-card">
+                        <div class="achievement-icon">🏢</div>
+                        <div class="achievement-details">
+                            <h4>Student Affairs Excellence</h4>
+                            <p>Service Distinction - 2024</p>
+                        </div>
+                    </div>
+                    <div class="achievement-card">
+                        <div class="achievement-icon">⚖️</div>
+                        <div class="achievement-details">
+                            <h4>Disciplinary Board Cert</h4>
+                            <p>Policy Management - 2025</p>
+                        </div>
+                    </div>
+                    <div class="achievement-card">
+                        <div class="achievement-icon">🤝</div>
+                        <div class="achievement-details">
+                            <h4>Leadership & Service</h4>
+                            <p>OSAS Excellence Award - 2026</p>
+                        </div>
+                    </div>
+                    <div class="achievement-card">
+                        <div class="achievement-icon">📈</div>
+                        <div class="achievement-details">
+                            <h4>Operational Efficiency</h4>
+                            <p>System Implementation - 2026</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </main>
 

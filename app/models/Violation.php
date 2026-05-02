@@ -21,11 +21,17 @@ class Violation {
     }
 
     public function findByGuard($guardId) {
-        $stmt = $this->conn->prepare("SELECT v.*, u.full_name as student_name, u.profile_photo, s.student_id_number, s.course FROM violations v JOIN users u ON v.student_user_id = u.id JOIN students s ON u.id = s.user_id ORDER BY v.created_at DESC");
+        $stmt = $this->conn->prepare("SELECT v.*, u.full_name as student_name, u.profile_photo, s.student_id_number, s.course 
+                                    FROM violations v 
+                                    JOIN users u ON v.student_user_id = u.id 
+                                    JOIN students s ON u.id = s.user_id 
+                                    WHERE v.guard_user_id = ?
+                                    ORDER BY v.created_at DESC");
         if (!$stmt) {
             error_log("Database error in findByGuard: " . $this->conn->error);
             return null;
         }
+        $stmt->bind_param("i", $guardId);
         $stmt->execute();
         return $stmt->get_result();
     }

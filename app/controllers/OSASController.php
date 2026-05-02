@@ -13,6 +13,17 @@ class OSASController extends BaseController {
         $this->violationModel = new Violation($db);
     }
 
+    private function getNotificationsArray($userId, $limit = 5) {
+        $result = $this->userModel->getNotifications($userId, $limit, $_SESSION['role']);
+        $notifications = [];
+        if ($result) {
+            while ($row = $result->fetch_assoc()) {
+                $notifications[] = $row;
+            }
+        }
+        return $notifications;
+    }
+
     public function dashboard() {
         if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'OSAS') {
             header("Location: index.php");
@@ -39,6 +50,10 @@ class OSASController extends BaseController {
             $studentUserId = $_POST['student_user_id'];
             $notifMsg = "OSAS has assigned a sanction for your violation: " . ($sanction ? $sanction : "Under review") . ". Click to view your records.";
             $this->userModel->createNotification($studentUserId, $notifMsg, $violationId);
+            
+            // Redirect to records to see the change
+            header("Location: index.php?url=osas/records&violation_id=" . $violationId);
+            exit();
         } elseif (isset($_POST['receive_violation_dash'])) {
             $violationId = $_POST['violation_id'];
             $guardId = $_POST['guard_id'];
@@ -52,6 +67,10 @@ class OSASController extends BaseController {
             // Notify the guard
             $msg = "OSAS has officially received the violation you submitted for $studentName.";
             $this->userModel->createNotification($guardId, $msg, $violationId);
+            
+            // Redirect to records
+            header("Location: index.php?url=osas/records&violation_id=" . $violationId);
+            exit();
         }
 
         $this->runEscalationCheck();
@@ -65,7 +84,7 @@ class OSASController extends BaseController {
         $yearLevelData = $this->getYearLevelViolationData();
 
         $unreadCount = $this->userModel->getUnreadNotificationCount($_SESSION['user_id'], $_SESSION['role']);
-        $notifications = $this->userModel->getNotifications($_SESSION['user_id'], 5, $_SESSION['role']);
+        $notifications = $this->getNotificationsArray($_SESSION['user_id']);
 
         echo $this->render_view('osas/osas_dashboard', [
             'stats' => $stats,
@@ -75,7 +94,8 @@ class OSASController extends BaseController {
             'monthlyData' => $monthlyData,
             'categoryData' => $categoryData,
             'courseData' => $courseData,
-            'yearLevelData' => $yearLevelData
+            'yearLevelData' => $yearLevelData,
+            'active' => 'home'
         ]);
     }
 
@@ -141,7 +161,7 @@ class OSASController extends BaseController {
         if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'OSAS') return;
         $role = $_SESSION['role'] ?? null;
         $this->userModel->markNotificationsAsRead($_SESSION['user_id'], $role);
-        header("Location: index.php?url=osas/dashboard");
+        header("Location: index.php?url=osas/records");
     }
 
     public function records() {
@@ -158,12 +178,15 @@ class OSASController extends BaseController {
             if (isset($_POST['receive_violation'])) {
                 $violationId = $_POST['violation_id'];
                 $studentName = $_POST['student_name'];
+                $guardId = $_POST['guard_id'] ?? null;
                 
-                // Fetch the guard ID for notification
-                $stmt = $this->db->prepare("SELECT guard_user_id FROM violations WHERE id = ?");
-                $stmt->bind_param("i", $violationId);
-                $stmt->execute();
-                $guardId = $stmt->get_result()->fetch_row()[0];
+                if (!$guardId) {
+                    // Fetch the guard ID if not provided
+                    $stmt = $this->db->prepare("SELECT guard_user_id FROM violations WHERE id = ?");
+                    $stmt->bind_param("i", $violationId);
+                    $stmt->execute();
+                    $guardId = $stmt->get_result()->fetch_row()[0];
+                }
 
                 // Update status
                 $stmt = $this->db->prepare("UPDATE violations SET status = 'received' WHERE id = ?");
@@ -177,10 +200,17 @@ class OSASController extends BaseController {
                 $violationId = $_POST['violation_id'];
                 $status = $_POST['status'];
                 $sanction = $_POST['sanction'];
+                $description = $_POST['description'] ?? null;
                 $studentUserId = $_POST['student_user_id'];
                 
-                $stmt = $this->db->prepare("UPDATE violations SET status = ?, sanction = ? WHERE id = ?");
-                $stmt->bind_param("ssi", $status, $sanction, $violationId);
+                if ($description !== null) {
+                    $stmt = $this->db->prepare("UPDATE violations SET status = ?, sanction = ?, description = ? WHERE id = ?");
+                    $stmt->bind_param("sssi", $status, $sanction, $description, $violationId);
+                } else {
+                    $stmt = $this->db->prepare("UPDATE violations SET status = ?, sanction = ? WHERE id = ?");
+                    $stmt->bind_param("ssi", $status, $sanction, $violationId);
+                }
+
                 if ($stmt->execute()) {
                     $message = "Violation record updated successfully.";
                     // Notify the student
@@ -189,10 +219,23 @@ class OSASController extends BaseController {
                 }
             } elseif (isset($_POST['complete_sanction'])) {
                 $violationId = $_POST['violation_id'];
+                $studentUserId = $_POST['student_user_id'] ?? null;
+                $studentName = $_POST['student_name'] ?? 'Student';
+
+                if (!$studentUserId) {
+                    $stmt = $this->db->prepare("SELECT student_user_id FROM violations WHERE id = ?");
+                    $stmt->bind_param("i", $violationId);
+                    $stmt->execute();
+                    $studentUserId = $stmt->get_result()->fetch_row()[0];
+                }
+
                 $stmt = $this->db->prepare("UPDATE violations SET status = 'completed' WHERE id = ?");
                 $stmt->bind_param("i", $violationId);
                 if ($stmt->execute()) {
-                    $message = "Violation sanction marked as completed.";
+                    $message = "Violation sanction marked as completed for $studentName.";
+                    // Notify student
+                    $notifMsg = "Congratulations! Your sanction has been marked as completed by OSAS. This record has been moved to your history.";
+                    $this->userModel->createNotification($studentUserId, $notifMsg, $violationId);
                 }
             } elseif (isset($_POST['delete_violation'])) {
                 $violationId = $_POST['violation_id'];
@@ -206,33 +249,36 @@ class OSASController extends BaseController {
 
         // Fetch all active/uncompleted violations
         $activeViolations = $this->db->query("
-            SELECT v.*, u.full_name as student_name, s.student_id_number, s.course, s.year_level, s.section, u.profile_photo
+            SELECT v.*, u.full_name as student_name, s.student_id_number, s.course, s.year_level, s.section, u.profile_photo, g.full_name as guard_name
             FROM violations v 
             JOIN users u ON v.student_user_id = u.id 
             JOIN students s ON u.id = s.user_id 
+            JOIN users g ON v.guard_user_id = g.id
             WHERE v.status != 'completed' 
             ORDER BY v.created_at DESC
         ");
 
         // Fetch history (completed)
         $completedViolations = $this->db->query("
-            SELECT v.*, v.last_action_date as updated_at, u.full_name as student_name, s.student_id_number, s.course, s.year_level, s.section
+            SELECT v.*, v.last_action_date as updated_at, u.full_name as student_name, s.student_id_number, s.course, s.year_level, s.section, u.profile_photo, g.full_name as guard_name
             FROM violations v 
             JOIN users u ON v.student_user_id = u.id 
             JOIN students s ON u.id = s.user_id 
+            JOIN users g ON v.guard_user_id = g.id
             WHERE v.status = 'completed' 
             ORDER BY v.created_at DESC
         ");
 
         $unreadCount = $this->userModel->getUnreadNotificationCount($userId, $_SESSION['role']);
-        $notifications = $this->userModel->getNotifications($userId, 5, $_SESSION['role']);
+        $notifications = $this->getNotificationsArray($userId);
 
         echo $this->render_view('osas/osas_records', [
             'activeViolations' => $activeViolations,
             'completedViolations' => $completedViolations,
             'unreadCount' => $unreadCount,
             'notifications' => $notifications,
-            'message' => $message
+            'message' => $message,
+            'active' => 'records'
         ]);
     }
 
@@ -291,13 +337,14 @@ class OSASController extends BaseController {
 
         $userData = $this->db->query("SELECT * FROM users WHERE id = $userId")->fetch_assoc();
         $unreadCount = $this->userModel->getUnreadNotificationCount($userId, $_SESSION['role']);
-        $notifications = $this->userModel->getNotifications($userId, 5, $_SESSION['role']);
+        $notifications = $this->getNotificationsArray($userId);
 
         echo $this->render_view('osas/osas_profile', [
             'userData' => $userData,
             'unreadCount' => $unreadCount,
             'notifications' => $notifications,
-            'message' => $message
+            'message' => $message,
+            'active' => 'profile'
         ]);
     }
 
@@ -353,13 +400,14 @@ class OSASController extends BaseController {
         ");
 
         $unreadCount = $this->userModel->getUnreadNotificationCount($userId, $_SESSION['role']);
-        $notifications = $this->userModel->getNotifications($userId, 5, $_SESSION['role']);
+        $notifications = $this->getNotificationsArray($userId);
 
         echo $this->render_view('osas/osas_guards', [
             'guards' => $guards,
             'unreadCount' => $unreadCount,
             'notifications' => $notifications,
-            'message' => $message
+            'message' => $message,
+            'active' => 'guards'
         ]);
     }
 
@@ -395,9 +443,71 @@ class OSASController extends BaseController {
             exit();
         }
 
+        $message = "";
+
+        // Handle Student CRUD
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            if (isset($_POST['add_student'])) {
+                $username = trim($_POST['username']);
+                $fullName = trim($_POST['full_name']);
+                $studentId = trim($_POST['student_id']);
+                $course = $_POST['course'];
+                $yearLevel = $_POST['year_level'];
+                $section = $_POST['section'];
+                $password = password_hash("student123", PASSWORD_DEFAULT); // Default password
+
+                // Check if username or student ID exists
+                if ($this->userModel->findByUsername($username)) {
+                    $message = "Error: Username already exists.";
+                } elseif ($this->userModel->findStudentByIdNumber($studentId)) {
+                    $message = "Error: Student ID already exists.";
+                } else {
+                    $userId = $this->userModel->register([
+                        'username' => $username,
+                        'password' => $password,
+                        'full_name' => $fullName,
+                        'role' => 'STUDENT'
+                    ]);
+
+                    if ($userId) {
+                        $this->userModel->registerStudent($userId, [
+                            'student_id' => $studentId,
+                            'course' => $course,
+                            'year_level' => $yearLevel,
+                            'section' => $section
+                        ]);
+                        $message = "Student '$fullName' added successfully. Default password is 'student123'.";
+                    }
+                }
+            } elseif (isset($_POST['update_student'])) {
+                $userId = $_POST['user_id'];
+                $fullName = trim($_POST['full_name']);
+                $studentId = trim($_POST['student_id']);
+                $course = $_POST['course'];
+                $yearLevel = $_POST['year_level'];
+                $section = $_POST['section'];
+
+                $stmt = $this->db->prepare("UPDATE users SET full_name = ? WHERE id = ?");
+                $stmt->bind_param("si", $fullName, $userId);
+                $stmt->execute();
+
+                $stmt = $this->db->prepare("UPDATE students SET student_id_number = ?, course = ?, year_level = ?, section = ? WHERE user_id = ?");
+                $stmt->bind_param("ssssi", $studentId, $course, $yearLevel, $section, $userId);
+                if ($stmt->execute()) {
+                    $message = "Student details updated successfully.";
+                }
+            } elseif (isset($_POST['delete_student'])) {
+                $userId = $_POST['user_id'];
+                $stmt = $this->db->prepare("DELETE FROM users WHERE id = ? AND role = 'STUDENT'");
+                $stmt->bind_param("i", $userId);
+                if ($stmt->execute()) {
+                    $message = "Student account deleted successfully.";
+                }
+            }
+        }
+
         $allAccounts = $this->userModel->getAllStudents();
         
-        // Group by year level - Only for students
         $studentsByYear = [
             '1st Year' => [],
             '2nd Year' => [],
@@ -405,10 +515,19 @@ class OSASController extends BaseController {
             '4th Year' => []
         ];
 
+        $yearMapping = [
+            '1' => '1st Year', '1st' => '1st Year', '1st Year' => '1st Year',
+            '2' => '2nd Year', '2nd' => '2nd Year', '2nd Year' => '2nd Year',
+            '3' => '3rd Year', '3rd' => '3rd Year', '3rd Year' => '3rd Year',
+            '4' => '4th Year', '4th' => '4th Year', '4th Year' => '4th Year'
+        ];
+
         while($row = $allAccounts->fetch_assoc()) {
             if ($row['role'] === 'STUDENT') {
-                $year = $row['year_level'];
-                if (array_key_exists($year, $studentsByYear)) {
+                $rawYear = $row['year_level'];
+                $year = $yearMapping[$rawYear] ?? 'Others';
+                
+                if ($year !== 'Others') {
                     $studentsByYear[$year][] = $row;
                 } else {
                     if (!isset($studentsByYear['Others'])) $studentsByYear['Others'] = [];
@@ -418,12 +537,14 @@ class OSASController extends BaseController {
         }
 
         $unreadCount = $this->userModel->getUnreadNotificationCount($_SESSION['user_id'], $_SESSION['role']);
-        $notifications = $this->userModel->getNotifications($_SESSION['user_id'], 5, $_SESSION['role']);
+        $notifications = $this->getNotificationsArray($_SESSION['user_id']);
 
         echo $this->render_view('osas/osas_students', [
             'studentsByYear' => $studentsByYear,
             'unreadCount' => $unreadCount,
-            'notifications' => $notifications
+            'notifications' => $notifications,
+            'message' => $message,
+            'active' => 'students'
         ]);
     }
 
@@ -466,117 +587,28 @@ class OSASController extends BaseController {
                 $notifId = $_POST['notification_id'];
                 $stmt = $this->db->prepare("UPDATE notifications SET is_read = TRUE WHERE id = ? AND user_id = ?");
                 $stmt->bind_param("ii", $notifId, $userId);
-                $stmt->execute();
+                if ($stmt->execute()) {
+                    $message = "Notification marked as read.";
+                }
             }
         }
 
         $unreadCount = $this->userModel->getUnreadNotificationCount($userId, $_SESSION['role']);
-        $allNotifications = $this->userModel->getNotifications($userId, 50, $_SESSION['role']); // Get more for the full page
-
-        echo $this->render_view('osas/osas_notifications', [
-            'notifications' => $allNotifications,
-            'unreadCount' => $unreadCount,
-            'message' => $message
-        ]);
-    }
-
-    public function violations() {
-        if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'OSAS') {
-            header("Location: index.php");
-            exit();
-        }
-
-        $message = "";
+        $notifResult = $this->userModel->getNotifications($userId, 50, $_SESSION['role']);
         
-        // Handle CRUD Operations
-        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            if (isset($_POST['update_violation'])) {
-                $vId = $_POST['violation_id'];
-                $status = $_POST['status'];
-                $sanction = $_POST['sanction'];
-                $desc = $_POST['description'];
-                
-                $sql = "UPDATE violations SET status = ?, sanction = ?, description = ? WHERE id = ?";
-                $stmt = $this->db->prepare($sql);
-                $stmt->bind_param("sssi", $status, $sanction, $desc, $vId);
-                
-                if ($stmt->execute()) {
-                    $message = "Violation updated successfully!";
-                    
-                    // Notify student of update
-                    $studentId = $_POST['student_user_id'];
-                    $notifMsg = "Your violation record has been updated by OSAS. Status: " . ucfirst($status) . ". Sanction: " . ($sanction ?: 'None');
-                    $this->userModel->createNotification($studentId, $notifMsg);
-                }
-            } elseif (isset($_POST['receive_violation'])) {
-                $vId = $_POST['violation_id'];
-                $guardId = $_POST['guard_id'];
-                $studentName = $_POST['student_name'];
-                
-                $sql = "UPDATE violations SET status = 'received' WHERE id = ?";
-                $stmt = $this->db->prepare($sql);
-                $stmt->bind_param("i", $vId);
-                
-                if ($stmt->execute()) {
-                    $message = "Violation for $studentName marked as received!";
-                    
-                    // Notify Guard
-                    $notifMsg = "OSAS has officially received the violation you submitted for $studentName.";
-                    $this->userModel->createNotification($guardId, $notifMsg);
-                }
-            } elseif (isset($_POST['complete_sanction'])) {
-                $vId = $_POST['violation_id'];
-                $studentId = $_POST['student_user_id'];
-                $studentName = $_POST['student_name'];
-                
-                $sql = "UPDATE violations SET status = 'completed' WHERE id = ?";
-                $stmt = $this->db->prepare($sql);
-                $stmt->bind_param("i", $vId);
-                
-                if ($stmt->execute()) {
-                    $message = "Sanction marked as completed for $studentName!";
-                    
-                    // Notify student
-                    $notifMsg = "Congratulations! Your sanction has been marked as completed by OSAS. This record has been moved to your history.";
-                    $this->userModel->createNotification($studentId, $notifMsg);
-                }
-            } elseif (isset($_POST['delete_violation'])) {
-                $vId = $_POST['violation_id'];
-                $stmt = $this->db->prepare("DELETE FROM violations WHERE id = ?");
-                $stmt->bind_param("i", $vId);
-                if ($stmt->execute()) {
-                    $message = "Violation deleted successfully.";
-                }
+        // Convert to array to avoid pointer issues in multiple views
+        $notifications = [];
+        if ($notifResult) {
+            while ($row = $notifResult->fetch_assoc()) {
+                $notifications[] = $row;
             }
         }
 
-        // Fetch Active Violations (Status NOT 'completed')
-        $activeViolations = $this->db->query("SELECT v.*, u.full_name as student_name, u.profile_photo, s.student_id_number, s.course, s.year_level, s.section, g.full_name as guard_name 
-                                      FROM violations v 
-                                      JOIN users u ON v.student_user_id = u.id 
-                                      JOIN students s ON u.id = s.user_id 
-                                      JOIN users g ON v.guard_user_id = g.id 
-                                      WHERE v.status != 'completed'
-                                      ORDER BY v.created_at DESC");
-
-        // Fetch Completed Violations (Status 'completed')
-        $completedViolations = $this->db->query("SELECT v.*, u.full_name as student_name, u.profile_photo, s.student_id_number, s.course, s.year_level, s.section, g.full_name as guard_name 
-                                      FROM violations v 
-                                      JOIN users u ON v.student_user_id = u.id 
-                                      JOIN students s ON u.id = s.user_id 
-                                      JOIN users g ON v.guard_user_id = g.id 
-                                      WHERE v.status = 'completed'
-                                      ORDER BY v.created_at DESC");
-
-        $unreadCount = $this->userModel->getUnreadNotificationCount($_SESSION['user_id'], $_SESSION['role']);
-        $notifications = $this->userModel->getNotifications($_SESSION['user_id'], 5, $_SESSION['role']);
-
-        echo $this->render_view('osas/osas_records', [
-            'activeViolations' => $activeViolations,
-            'completedViolations' => $completedViolations,
-            'message' => $message,
+        echo $this->render_view('osas/osas_notifications', [
+            'notifications' => $notifications,
             'unreadCount' => $unreadCount,
-            'notifications' => $notifications
+            'message' => $message,
+            'active' => 'notifications'
         ]);
     }
 
@@ -617,36 +649,30 @@ class OSASController extends BaseController {
             if ($type == 'Minor') {
                 if ($diff >= 2 && $status == 'pending') {
                     $this->updateViolationStatus($v['id'], 'warning_sent');
-                    $this->createNotification($v['student_user_id'], "Warning: You have 2 days to act on your minor violation.");
+                    $this->userModel->createNotification($v['student_user_id'], "Warning: You have 2 days to act on your minor violation.", $v['id']);
                 } elseif ($diff >= 3 && $status == 'warning_sent') {
                     $this->upgradeToMajor($v['id']);
-                    $this->createNotification($v['student_user_id'], "Critical: Your minor violation has been upgraded to MAJOR due to inactivity.");
+                    $this->userModel->createNotification($v['student_user_id'], "Critical: Your minor violation has been upgraded to MAJOR due to inactivity.", $v['id']);
                 } elseif ($diff >= 6 && $status == 'warning_sent') {
                     $this->updateViolationStatus($v['id'], 'parent_called');
-                    $this->createNotification($v['student_user_id'], "Alert: Parents will be called regarding your violation.");
+                    $this->userModel->createNotification($v['student_user_id'], "Alert: Parents will be called regarding your violation.", $v['id']);
                 }
             } else { // Major
                 if ($diff >= 3 && $status == 'pending') {
                     $this->updateViolationStatus($v['id'], 'warning_sent');
-                    $this->createNotification($v['student_user_id'], "Warning: Action required for your Major violation.");
+                    $this->userModel->createNotification($v['student_user_id'], "Warning: Action required for your Major violation.", $v['id']);
                 } elseif ($diff >= 6 && $status == 'warning_sent' && $escalation < 2) {
                     $this->incrementEscalation($v['id']);
-                    $this->createNotification($v['student_user_id'], "Second Warning: Final notice before calling parents.");
+                    $this->userModel->createNotification($v['student_user_id'], "Second Warning: Final notice before calling parents.", $v['id']);
                 } elseif ($diff >= 9 && $status == 'warning_sent' && $escalation >= 2) {
                     $this->updateViolationStatus($v['id'], 'parent_called');
-                    $this->createNotification($v['student_user_id'], "Alert: Parents will be called for this major violation.");
+                    $this->userModel->createNotification($v['student_user_id'], "Alert: Parents will be called for this major violation.", $v['id']);
                 } elseif ($diff >= 12 && $status == 'parent_called') {
                     $this->updateViolationStatus($v['id'], 'dropped');
-                    $this->createNotification($v['student_user_id'], "Final Notice: Dropped from system due to non-compliance.");
+                    $this->userModel->createNotification($v['student_user_id'], "Final Notice: Dropped from system due to non-compliance.", $v['id']);
                 }
             }
         }
-    }
-
-    private function createNotification($userId, $message) {
-        $stmt = $this->db->prepare("INSERT INTO notifications (user_id, message) VALUES (?, ?)");
-        $stmt->bind_param("is", $userId, $message);
-        $stmt->execute();
     }
 
     private function upgradeToMajor($violationId) {

@@ -52,15 +52,21 @@
 }
 
 .sidebar-link:hover {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.08);
     color: white;
-    transform: translateX(5px);
+    transform: translateX(8px);
 }
 
 .sidebar-link.active {
-    background: var(--sage-green);
-    color: white;
-    box-shadow: 0 8px 20px rgba(64, 145, 108, 0.3);
+    background: rgba(64, 145, 108, 0.2);
+    color: var(--mint-green);
+    border: 1px solid rgba(64, 145, 108, 0.3);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    transform: translateX(5px);
+}
+
+.sidebar-link.active .icon img {
+    filter: drop-shadow(0 0 5px var(--sage-green));
 }
 
 .sidebar-footer {

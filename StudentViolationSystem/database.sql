@@ -1,4 +1,4 @@
-nCREATE DATABASE IF NOT EXISTS student_violation_system;
+CREATE DATABASE IF NOT EXISTS student_violation_system;
 USE student_violation_system;
 
 CREATE TABLE IF NOT EXISTS users (

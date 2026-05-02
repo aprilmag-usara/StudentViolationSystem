@@ -18,26 +18,38 @@
     <!-- Main Content -->
     <main class="main-dashboard">
         <div class="welcome-section">
-            <h1>Guard Management</h1>
-            <p>Monitor and manage the campus security guard team.</p>
-        </div>
-
-            <?php if (!empty($message)): ?>
-                <div class="toast-container" id="toast">
-                    <div class="toast-message">
-                        <?php echo $message; ?>
+            <div class="flex-between align-center mb-10">
+                <div>
+                    <h1>Guard Management</h1>
+                    <p>Monitor and manage the campus security guard team.</p>
+                </div>
+                <div class="flex-row align-center gap-20">
+                    <button class="btn-primary-enhanced" onclick="showAddGuardModal()">
+                        <span>+</span> Add Guard Name
+                    </button>
+                    <div class="search-container max-w-400">
+                        <span class="fs-1-2 opacity-50 mr-10"><img src="assets/img/icons/search.svg" alt="Magnifying Glass icon" width="24" height="24"></span>
+                        <input type="text" id="guardSearch" placeholder="Search guards by name..." class="search-input-clear">
                     </div>
                 </div>
-            <?php endif; ?>
-
-            <div class="add-guard-section">
-                <h2 class="text-mint-green m-0">Add New Guard Name</h2>
-                <p class="text-white-40 fs-0-9">The name will appear in the Guard on Duty dropdown.</p>
-                <form method="POST" class="add-guard-form">
-                    <input type="text" name="guard_name" class="add-input" placeholder="Enter guard's full name..." required>
-                    <button type="submit" name="add_guard" class="add-btn">Add Guard</button>
-                </form>
             </div>
+        </div>
+
+        <div id="noGuardResults" class="text-center py-60 display-none" style="display: none;">
+            <div class="fs-3-0 mb-10"><img src="assets/img/icons/search.svg" alt="Magnifying Glass icon" width="35" height="35"></div>
+            <h2 class="text-white-50">No guards found</h2>
+            <p class="text-white-30">Try searching for a different name.</p>
+        </div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                <?php if (!empty($message)): ?>
+                    const msg = "<?php echo addslashes($message); ?>";
+                    const isError = msg.toLowerCase().includes('error') || msg.toLowerCase().includes('failed');
+                    showToast(isError ? 'Action Failed' : 'Success', msg, isError ? 'error' : 'success');
+                <?php endif; ?>
+            });
+        </script>
 
             <div class="guard-grid">
                 <?php if ($guards && $guards->num_rows > 0): ?>
@@ -86,12 +98,30 @@
             <form method="POST" class="flex-column gap-20">
                 <input type="hidden" name="guard_id" id="editGuardId">
                 <div class="form-group">
-                    <label>Guard Name</label>
-                    <input type="text" name="new_guard_name" id="editGuardName" class="form-input-styled" required>
+                    <label class="form-label">Guard Name</label>
+                    <input type="text" name="new_guard_name" id="editGuardName" class="form-input" required>
                 </div>
                 <div class="modal-buttons">
                     <button type="button" class="modal-btn modal-btn-no" onclick="hideEditGuardModal()">Cancel</button>
                     <button type="submit" name="edit_guard" class="modal-btn modal-btn-yes">Update Name</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Guard Modal -->
+    <div id="addGuardModal" class="modal-overlay">
+        <div class="modal-content text-left">
+            <span class="modal-close" onclick="hideAddGuardModal()">&times;</span>
+            <h2 class="mb-5">Add New Guard</h2>
+            <p class="text-white-40 mb-25">The name will appear in the Guard on Duty dropdown.</p>
+            <form method="POST" class="standard-form">
+                <div class="form-group">
+                    <label class="form-label">Full Name</label>
+                    <input type="text" name="guard_name" class="form-input" placeholder="Enter guard's full name..." required>
+                </div>
+                <div class="flex-row justify-center mt-30">
+                    <button type="submit" name="add_guard" class="btn-primary-enhanced px-40">Create Guard Name</button>
                 </div>
             </form>
         </div>
