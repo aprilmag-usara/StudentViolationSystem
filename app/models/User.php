@@ -115,39 +115,52 @@ class User {
     // Notifications Logic
     public function getUnreadNotificationCount($userId, $role = null) {
         $sql = "SELECT COUNT(*) FROM notifications n JOIN users u ON n.user_id = u.id WHERE n.is_read = FALSE AND (n.user_id = ?";
-        if ($role === 'GUARD') {
-            $sql .= " OR u.role = 'GUARD'";
+        if ($role === 'GUARD' || $role === 'OSAS') {
+            $sql .= " OR u.role = ?";
         }
         $sql .= ")";
         
         $stmt = $this->conn->prepare($sql);
-        $stmt->bind_param("i", $userId);
+        if ($role === 'GUARD' || $role === 'OSAS') {
+            $stmt->bind_param("is", $userId, $role);
+        } else {
+            $stmt->bind_param("i", $userId);
+        }
         $stmt->execute();
-        return $stmt->get_result()->fetch_row()[0];
+        $result = $stmt->get_result()->fetch_row();
+        return $result ? (int)$result[0] : 0;
     }
 
     public function getNotifications($userId, $limit = 5, $role = null) {
         $sql = "SELECT n.* FROM notifications n JOIN users u ON n.user_id = u.id WHERE (n.user_id = ?";
-        if ($role === 'GUARD') {
-            $sql .= " OR u.role = 'GUARD'";
+        if ($role === 'GUARD' || $role === 'OSAS') {
+            $sql .= " OR u.role = ?";
         }
         $sql .= ") ORDER BY n.created_at DESC LIMIT ?";
         
         $stmt = $this->conn->prepare($sql);
-        $stmt->bind_param("ii", $userId, $limit);
+        if ($role === 'GUARD' || $role === 'OSAS') {
+            $stmt->bind_param("isi", $userId, $role, $limit);
+        } else {
+            $stmt->bind_param("ii", $userId, $limit);
+        }
         $stmt->execute();
         return $stmt->get_result();
     }
 
     public function markNotificationsAsRead($userId, $role = null) {
-        $sql = "UPDATE notifications n JOIN users u ON n.user_id = u.id SET n.is_read = TRUE WHERE (n.user_id = ?";
-        if ($role === 'GUARD') {
-            $sql .= " OR u.role = 'GUARD'";
+        $sql = "UPDATE notifications n JOIN users u ON n.user_id = u.id SET n.is_read = TRUE WHERE n.is_read = FALSE AND (n.user_id = ?";
+        if ($role === 'GUARD' || $role === 'OSAS') {
+            $sql .= " OR u.role = ?";
         }
         $sql .= ")";
         
         $stmt = $this->conn->prepare($sql);
-        $stmt->bind_param("i", $userId);
+        if ($role === 'GUARD' || $role === 'OSAS') {
+            $stmt->bind_param("is", $userId, $role);
+        } else {
+            $stmt->bind_param("i", $userId);
+        }
         return $stmt->execute();
     }
 

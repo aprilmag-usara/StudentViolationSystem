@@ -1,3 +1,21 @@
+<?php 
+/** @var array $stats */
+/** @var mysqli_result $recentViolations */
+/** @var array $monthlyData */
+/** @var array $categoryData */
+/** @var array $courseData */
+/** @var array $yearLevelData */
+/** @var int $unreadCount */
+/** @var array $notifications */
+$stats = $stats ?? [];
+$recentViolations = $recentViolations ?? null;
+$monthlyData = $monthlyData ?? ['months' => [], 'counts' => []];
+$categoryData = $categoryData ?? [];
+$courseData = $courseData ?? [];
+$yearLevelData = $yearLevelData ?? [];
+$unreadCount = $unreadCount ?? 0;
+$notifications = $notifications ?? [];
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,6 +27,7 @@
     <link rel="stylesheet" href="assets/css/osas.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
 </head>
 <body>
     <div class="dashboard-bg-overlay"></div>
@@ -18,49 +37,49 @@
 
     <!-- Main Content -->
     <main class="main-dashboard">
-        <div class="welcome-section">
-            <div class="flex-between align-end">
+        <div class="welcome-section mb-20">
+            <div class="flex-between align-center">
                 <div>
-                    <h1>OSAS Administrator</h1>
-                    <p>Student violation management system overview.</p>
-                </div>
-                <div class="fs-0-9 text-white-50 fw-300">
-                    Today is <?php echo date('l, M d Y'); ?>
+                    <h1 class="glow-text mb-5">Dashboard Overview</h1>
+                    <div class="flex align-center gap-10 opacity-50">
+                        <span class="icon-calendar"><img src="assets/img/icons/clipboard.svg" alt="" width="14"></span>
+                        <span class="fs-0-8 fw-500"><?php echo date('l, F d, Y'); ?></span>
+                    </div>
                 </div>
             </div>
         </div>
 
         <div class="osas-stats-grid">
-                <div class="stat-card">
+                <div class="stat-card stat-total">
                     <span class="stat-icon"><img src="assets/img/icons/stat.svg" alt="Statistics icon"></span>
                     <div class="stat-info">
                         <h3>Total Violations</h3>
                         <div class="value"><?php echo $stats['total_violations']; ?></div>
                     </div>
                 </div>
-                <div class="stat-card">
-                    <span class="stat-icon text-orange"><img src="assets/img/icons/pending2.svg" alt="Pending Actions icon"></span>
+                <div class="stat-card stat-pending">
+                    <span class="stat-icon"><img src="assets/img/icons/pending2.svg" alt="Pending Actions icon"></span>
                     <div class="stat-info">
                         <h3>Pending Actions</h3>
                         <div class="value"><?php echo $stats['pending_violations']; ?></div>
                     </div>
                 </div>
-                <div class="stat-card">
-                    <span class="stat-icon text-error"><img src="assets/img/icons/cautions.svg" alt="Caution icon"></span>
+                <div class="stat-card stat-major">
+                    <span class="stat-icon"><img src="assets/img/icons/cautions.svg" alt="Caution icon"></span>
                     <div class="stat-info">
                         <h3>Major Cases</h3>
                         <div class="value"><?php echo $stats['major_violations']; ?></div>
                     </div>
                 </div>
-                <div class="stat-card">
-                    <span class="stat-icon text-yellow"><img src="assets/img/icons/lists.svg" alt="Bxs List Ul Square icon"></span>
+                <div class="stat-card stat-minor">
+                    <span class="stat-icon"><img src="assets/img/icons/lists.svg" alt="Bxs List Ul Square icon"></span>
                     <div class="stat-info">
                         <h3>Minor Cases</h3>
                         <div class="value"><?php echo $stats['minor_violations']; ?></div>
                     </div>
                 </div>
-                <div class="stat-card">
-                    <span class="stat-icon text-danger"><img src="assets/img/icons/expel.svg" alt="Expulsion icon"></span>
+                <div class="stat-card stat-expulsion">
+                    <span class="stat-icon"><img src="assets/img/icons/expel.svg" alt="Expulsion icon"></span>
                     <div class="stat-info">
                         <h3>Expulsions</h3>
                         <div class="value"><?php echo $stats['expulsions']; ?></div>
@@ -84,25 +103,27 @@
                 <!-- Right Side Stats -->
                 <div class="chart-card col-4">
                     <div class="chart-header">
-                        <h3>Case Summary</h3>
-                        <span class="subtitle">Live System Totals</span>
+                        <h3>Quick Scanner</h3>
+                        <span class="subtitle">Scan User QR Code</span>
                     </div>
-                    <div class="stat-mini-grid">
-                        <div class="stat-mini-card">
-                            <span class="label">Total Records</span>
-                            <span class="value"><?php echo $stats['total_violations']; ?></span>
+                    <div class="scanner-area-mini text-center">
+                        <div id="reader" style="width: 100%; border-radius: 12px; overflow: hidden; margin-bottom: 20px; display: none; border: 1px solid var(--glass-border);"></div>
+                        <div id="scannerIconMini" class="scanner-icon-box">
+                            <img src="https://proicons.com/icon/11866.svg" alt="Scanner" width="30" height="30" style="opacity: 0.6;">
                         </div>
-                        <div class="stat-mini-card">
-                            <span class="label">Pending Review</span>
-                            <span class="value text-orange"><?php echo $stats['pending_violations']; ?></span>
-                        </div>
-                        <div class="stat-mini-card">
-                            <span class="label">Major Violations</span>
-                            <span class="value text-error"><?php echo $stats['major_violations']; ?></span>
-                        </div>
-                        <div class="stat-mini-card">
-                            <span class="label">Minor Violations</span>
-                            <span class="value text-yellow"><?php echo $stats['minor_violations']; ?></span>
+                        <p id="scannerInstructions" class="text-white-40 fs-0-8 mb-20">Click below to start verifying user QR codes</p>
+                        <button id="startScannerOsas" class="action-btn w-100">Start Verification</button>
+                        <button id="stopScannerOsas" class="action-btn w-100 display-none" style="background: #e74c3c;">Close Scanner</button>
+                    </div>
+
+                    <div class="chart-header mt-30">
+                        <h3>System Integrity</h3>
+                        <span class="subtitle">Automated Escalation Active</span>
+                    </div>
+                    <div class="p-20 glass-card text-center">
+                        <p class="text-white-50 fs-0-8 mb-10">All records are being monitored for non-compliance.</p>
+                        <div class="status-badge-secure">
+                            <span class="secure-dot"></span> SECURE
                         </div>
                     </div>
                 </div>
@@ -179,24 +200,36 @@
                                     </span>
                                 </td>
                                 <td>
-                                    <?php if ($row['status'] === 'pending'): ?>
-                                        <form method="POST" action="index.php?url=osas/dashboard" class="mb-10">
-                                            <input type="hidden" name="violation_id" value="<?php echo $row['id']; ?>">
-                                            <input type="hidden" name="guard_id" value="<?php echo $row['guard_user_id']; ?>">
-                                            <input type="hidden" name="student_name" value="<?php echo htmlspecialchars($row['student_name']); ?>">
-                                            <button type="submit" name="receive_violation_dash" class="modal-btn btn-receive-dash">Receive Violation</button>
-                                        </form>
-                                    <?php endif; ?>
-                                    
-                                    <form method="POST" action="index.php?url=osas/dashboard" class="flex-column gap-10">
-                                        <input type="hidden" name="violation_id" value="<?php echo $row['id']; ?>">
-                                        <input type="hidden" name="guard_id" value="<?php echo $row['guard_user_id']; ?>">
-                                        <input type="hidden" name="student_user_id" value="<?php echo $row['student_user_id']; ?>">
-                                        <input type="hidden" name="student_name" value="<?php echo htmlspecialchars($row['student_name']); ?>">
+                                    <div class="action-container">
+                                        <?php if ($row['status'] === 'pending'): ?>
+                                            <form method="POST" action="index.php?url=osas/dashboard" class="mb-5">
+                                                <input type="hidden" name="violation_id" value="<?php echo $row['id']; ?>">
+                                                <input type="hidden" name="guard_id" value="<?php echo $row['guard_user_id']; ?>">
+                                                <input type="hidden" name="student_name" value="<?php echo htmlspecialchars($row['student_name']); ?>">
+                                                <button type="submit" name="receive_violation_dash" class="btn-action btn-receive-dash">
+                                                    <img src="assets/img/icons/pass.svg" alt="" width="14"> Receive
+                                                </button>
+                                            </form>
+                                        <?php endif; ?>
                                         
-                                        <input type="text" name="sanction" placeholder="Enter sanction..." class="sanction-input-dash" required>
-                                        <button type="submit" name="review_violation" class="btn-submit-sanction">Submit Sanction</button>
-                                    </form>
+                                        <?php if (!in_array($row['status'], ['completed', 'dismissed'])): ?>
+                                            <form method="POST" action="index.php?url=osas/dashboard" class="sanction-form">
+                                                <input type="hidden" name="violation_id" value="<?php echo $row['id']; ?>">
+                                                <input type="hidden" name="guard_id" value="<?php echo $row['guard_user_id']; ?>">
+                                                <input type="hidden" name="student_user_id" value="<?php echo $row['student_user_id']; ?>">
+                                                <input type="hidden" name="student_name" value="<?php echo htmlspecialchars($row['student_name']); ?>">
+                                                
+                                                <div class="input-group">
+                                                    <input type="text" name="sanction" placeholder="Add sanction..." class="sanction-input-dash" required>
+                                                    <button type="submit" name="review_violation" class="btn-submit-sanction" title="Submit Sanction">
+                                                        <img src="assets/img/icons/lightning.svg" alt="" width="14">
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        <?php else: ?>
+                                            <span class="text-white-30 fs-0-8 italic">No actions needed</span>
+                                        <?php endif; ?>
+                                    </div>
                                 </td>
                             </tr>
                             <?php endwhile; ?>
@@ -211,9 +244,7 @@
         </main>
     </div>
 
-    <!-- Logout Modal removed since it is now in navbar.php -->
-
-    <!-- Charts Script -->
+    <script src="assets/js/osas.js"></script>
     <script>
         // Inject dynamic data from PHP
         const chartData = {
@@ -222,7 +253,223 @@
             course: <?php echo json_encode($courseData); ?>,
             yearLevel: <?php echo json_encode($yearLevelData); ?>
         };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. Violation Trends Chart (Line Chart)
+            const trendCtx = document.getElementById('violationTrendsChart').getContext('2d');
+            
+            // Create Gradient
+            const currentGradient = trendCtx.createLinearGradient(0, 0, 0, 400);
+            currentGradient.addColorStop(0, 'rgba(64, 145, 108, 0.4)');
+            currentGradient.addColorStop(1, 'rgba(64, 145, 108, 0)');
+
+            new Chart(trendCtx, {
+                type: 'line',
+                data: {
+                    labels: chartData.monthly.months,
+                    datasets: [
+                        {
+                            label: `Current Year (${chartData.monthly.currentYear})`,
+                            data: chartData.monthly.current,
+                            borderColor: '#40916c',
+                            backgroundColor: currentGradient,
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.5,
+                            cubicInterpolationMode: 'monotone',
+                            pointBackgroundColor: '#fff',
+                            pointBorderColor: '#40916c',
+                            pointRadius: 4,
+                            pointHoverRadius: 6,
+                            order: 1
+                        },
+                        {
+                            label: `Previous Year (${chartData.monthly.previousYear})`,
+                            data: chartData.monthly.previous,
+                            borderColor: 'rgba(255, 255, 255, 0.15)',
+                            borderDash: [5, 5],
+                            backgroundColor: 'transparent',
+                            borderWidth: 2,
+                            fill: false,
+                            tension: 0.5,
+                            cubicInterpolationMode: 'monotone',
+                            pointBackgroundColor: 'rgba(255, 255, 255, 0.1)',
+                            pointRadius: 2,
+                            order: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            align: 'end',
+                            labels: {
+                                color: 'rgba(255, 255, 255, 0.5)',
+                                font: { family: 'Poppins', size: 10 },
+                                usePointStyle: true,
+                                padding: 20
+                            }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: 'rgba(8, 28, 21, 0.9)',
+                            titleFont: { family: 'Poppins' },
+                            bodyFont: { family: 'Poppins' },
+                            padding: 12,
+                            cornerRadius: 10
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false },
+                            ticks: { color: 'rgba(255, 255, 255, 0.3)', font: { size: 11 } }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: 'rgba(255, 255, 255, 0.3)', font: { size: 11 } }
+                        }
+                    }
+                }
+            });
+
+            // 2. Type Distribution (Doughnut Chart)
+            const categoryCtx = document.getElementById('violationCategoryChart');
+            if (categoryCtx) {
+                new Chart(categoryCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(chartData.category),
+                        datasets: [{
+                            data: Object.values(chartData.category),
+                            backgroundColor: ['#f1c40f', '#e74c3c'],
+                            borderWidth: 0,
+                            hoverOffset: 10
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '75%',
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    color: 'rgba(255,255,255,0.7)',
+                                    padding: 20,
+                                    font: { family: 'Poppins', size: 11 }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // 3. Top Course Cases (Bar Chart)
+            const courseCtx = document.getElementById('courseChart');
+            if (courseCtx) {
+                new Chart(courseCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: chartData.course.courses,
+                        datasets: [{
+                            label: 'Cases',
+                            data: chartData.course.counts,
+                            backgroundColor: '#40916c',
+                            borderRadius: 5,
+                            barThickness: 15
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.5)', font: { size: 10 } } },
+                            y: { grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.5)', font: { size: 10 } } }
+                        }
+                    }
+                });
+            }
+
+            // 4. Year Level Chart (Bar Chart)
+            const yearLevelCtx = document.getElementById('yearLevelChart');
+            if (yearLevelCtx) {
+                new Chart(yearLevelCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: chartData.yearLevel.levels,
+                        datasets: [{
+                            label: 'Cases',
+                            data: chartData.yearLevel.counts,
+                            backgroundColor: '#52b788',
+                            borderRadius: 5,
+                            barThickness: 20
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.5)', font: { size: 10 } } },
+                            y: { grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.5)', font: { size: 10 } } }
+                        }
+                    }
+                });
+            }
+
+            const html5QrCode = new Html5Qrcode("reader");
+            const startBtn = document.getElementById('startScannerOsas');
+            const stopBtn = document.getElementById('stopScannerOsas');
+            const reader = document.getElementById('reader');
+            const icon = document.getElementById('scannerIconMini');
+
+            const onScanSuccess = (decodedText) => {
+                html5QrCode.stop().then(() => {
+                    if (decodedText.includes('view_user')) {
+                        window.location.href = decodedText;
+                    } else {
+                        alert("Invalid QR Code: " + decodedText);
+                        location.reload();
+                    }
+                });
+            };
+
+            startBtn.addEventListener('click', () => {
+                reader.style.display = 'block';
+                icon.style.display = 'none';
+                document.getElementById('scannerInstructions').style.display = 'none';
+                startBtn.classList.add('display-none');
+                stopBtn.classList.remove('display-none');
+
+                html5QrCode.start(
+                    { facingMode: "environment" },
+                    { fps: 10, qrbox: 250 },
+                    onScanSuccess
+                ).catch(err => {
+                    console.error(err);
+                    alert("Could not access camera.");
+                    location.reload();
+                });
+            });
+
+            stopBtn.addEventListener('click', () => {
+                html5QrCode.stop().then(() => {
+                    reader.style.display = 'none';
+                    icon.style.display = 'flex';
+                    document.getElementById('scannerInstructions').style.display = 'block';
+                    startBtn.classList.remove('display-none');
+                    stopBtn.classList.add('display-none');
+                });
+            });
+        });
     </script>
-    <script src="assets/js/osas.js"></script>
 </body>
 </html>

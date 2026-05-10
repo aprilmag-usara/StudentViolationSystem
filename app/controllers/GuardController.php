@@ -84,13 +84,6 @@ class GuardController extends BaseController {
         ]));
     }
 
-    public function mark_read() {
-        if (!isset($_SESSION['user_id'])) return;
-        $role = $_SESSION['role'] ?? null;
-        $this->userModel->markNotificationsAsRead($_SESSION['user_id'], $role);
-        header("Location: index.php?url=guard/dashboard");
-    }
-
     public function profile() {
         if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'GUARD') {
             header("Location: index.php");
@@ -160,9 +153,20 @@ class GuardController extends BaseController {
         
         // Ensure bio and profile_photo exist
         $userBase = $this->userModel->findByUsername($_SESSION['username']);
-        $guardInfo['username'] = $userBase['username'];
-        $guardInfo['bio'] = $userBase['bio'] ?? "";
-        $guardInfo['profile_photo'] = $userBase['profile_photo'] ?? "default_profile.png";
+        if ($guardInfo) {
+            $guardInfo['username'] = $userBase['username'];
+            $guardInfo['bio'] = $userBase['bio'] ?? "";
+            $guardInfo['profile_photo'] = $userBase['profile_photo'] ?? "default_profile.png";
+        } else {
+            // Fallback if guardInfo is null
+            $guardInfo = [
+                'full_name' => $userBase['full_name'],
+                'username' => $userBase['username'],
+                'bio' => $userBase['bio'] ?? "",
+                'profile_photo' => $userBase['profile_photo'] ?? "default_profile.png",
+                'id' => $userId
+            ];
+        }
 
         $navData = $this->getNavData($userId);
 
@@ -192,6 +196,50 @@ class GuardController extends BaseController {
             'violations' => $violations,
             'active' => 'records'
         ]));
+    }
+
+    public function notifications() {
+        if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'GUARD') {
+            header("Location: index.php");
+            exit();
+        }
+
+        $userId = $_SESSION['user_id'];
+        $message = "";
+
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            if (isset($_POST['delete_notification'])) {
+                $notifId = $_POST['notification_id'];
+                $stmt = $this->db->prepare("DELETE FROM notifications WHERE id = ? AND user_id = ?");
+                $stmt->bind_param("ii", $notifId, $userId);
+                if ($stmt->execute()) {
+                    $message = "Notification deleted.";
+                }
+            }
+        }
+
+        $navData = $this->getNavData($userId);
+        $notifResult = $this->userModel->getNotifications($userId, 50, $_SESSION['role']);
+        
+        $allNotifications = [];
+        if ($notifResult) {
+            while ($row = $notifResult->fetch_assoc()) {
+                $allNotifications[] = $row;
+            }
+        }
+
+        echo $this->render_view('guard/guard_notifications', array_merge($navData, [
+            'notifications' => $allNotifications,
+            'message' => $message,
+            'active' => 'notifications'
+        ]));
+    }
+
+    public function mark_read() {
+        if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'GUARD') return;
+        $role = $_SESSION['role'] ?? null;
+        $this->userModel->markNotificationsAsRead($_SESSION['user_id'], $role);
+        header("Location: index.php?url=guard/notifications");
     }
 
     private function getNavData($userId) {

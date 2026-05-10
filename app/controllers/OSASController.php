@@ -13,15 +13,19 @@ class OSASController extends BaseController {
         $this->violationModel = new Violation($db);
     }
 
-    private function getNotificationsArray($userId, $limit = 5) {
-        $result = $this->userModel->getNotifications($userId, $limit, $_SESSION['role']);
+    private function getNavData($userId) {
+        $role = $_SESSION['role'] ?? null;
+        $notifResult = $this->userModel->getNotifications($userId, 5, $role);
         $notifications = [];
-        if ($result) {
-            while ($row = $result->fetch_assoc()) {
+        if ($notifResult) {
+            while ($row = $notifResult->fetch_assoc()) {
                 $notifications[] = $row;
             }
         }
-        return $notifications;
+        return [
+            'unreadCount' => $this->userModel->getUnreadNotificationCount($userId, $role),
+            'notifications' => $notifications
+        ];
     }
 
     public function dashboard() {
@@ -59,16 +63,35 @@ class OSASController extends BaseController {
             $guardId = $_POST['guard_id'];
             $studentName = $_POST['student_name'];
             
+            // Fetch student info for duplicate check
+            $stmt = $this->db->prepare("SELECT student_user_id, violation_type, description FROM violations WHERE id = ?");
+            $stmt->bind_param("i", $violationId);
+            $stmt->execute();
+            $vData = $stmt->get_result()->fetch_assoc();
+            $studentUserId = $vData['student_user_id'];
+            $vType = $vData['violation_type'];
+            $vDesc = $vData['description'];
+
             // Update status
             $stmt = $this->db->prepare("UPDATE violations SET status = 'received' WHERE id = ?");
             $stmt->bind_param("i", $violationId);
             $stmt->execute();
+
+            // Also update any IDENTICAL pending violations
+            $stmt2 = $this->db->prepare("UPDATE violations SET status = 'received' 
+                                       WHERE student_user_id = ? 
+                                       AND violation_type = ? 
+                                       AND description = ? 
+                                       AND status = 'pending' 
+                                       AND id != ?");
+            $stmt2->bind_param("issi", $studentUserId, $vType, $vDesc, $violationId);
+            $stmt2->execute();
             
             // Notify the guard
             $msg = "OSAS has officially received the violation you submitted for $studentName.";
             $this->userModel->createNotification($guardId, $msg, $violationId);
             
-            // Redirect to records
+            // Redirect to records to see the change
             header("Location: index.php?url=osas/records&violation_id=" . $violationId);
             exit();
         }
@@ -83,39 +106,51 @@ class OSASController extends BaseController {
         $courseData = $this->getCourseViolationData();
         $yearLevelData = $this->getYearLevelViolationData();
 
-        $unreadCount = $this->userModel->getUnreadNotificationCount($_SESSION['user_id'], $_SESSION['role']);
-        $notifications = $this->getNotificationsArray($_SESSION['user_id']);
+        $navData = $this->getNavData($_SESSION['user_id']);
 
-        echo $this->render_view('osas/osas_dashboard', [
+        echo $this->render_view('osas/osas_dashboard', array_merge($navData, [
             'stats' => $stats,
             'recentViolations' => $recentViolations,
-            'unreadCount' => $unreadCount,
-            'notifications' => $notifications,
             'monthlyData' => $monthlyData,
             'categoryData' => $categoryData,
             'courseData' => $courseData,
             'yearLevelData' => $yearLevelData,
             'active' => 'home'
-        ]);
+        ]));
     }
 
     private function getMonthlyViolationData() {
         $months = [];
-        $counts = [];
-        $year = date('Y');
+        $currentYearCounts = [];
+        $previousYearCounts = [];
+        $currentYear = date('Y');
+        $previousYear = $currentYear - 1;
         
         for ($m = 1; $m <= 12; $m++) {
             $date = DateTime::createFromFormat('!m', $m);
             $monthName = $date->format('M');
             $months[] = $monthName;
             
+            // Current Year Data
             $stmt = $this->db->prepare("SELECT COUNT(*) FROM violations WHERE MONTH(created_at) = ? AND YEAR(created_at) = ?");
-            $stmt->bind_param("ii", $m, $year);
+            $stmt->bind_param("ii", $m, $currentYear);
             $stmt->execute();
-            $counts[] = $stmt->get_result()->fetch_row()[0];
+            $currentYearCounts[] = $stmt->get_result()->fetch_row()[0];
+
+            // Previous Year Data
+            $stmt2 = $this->db->prepare("SELECT COUNT(*) FROM violations WHERE MONTH(created_at) = ? AND YEAR(created_at) = ?");
+            $stmt2->bind_param("ii", $m, $previousYear);
+            $stmt2->execute();
+            $previousYearCounts[] = $stmt2->get_result()->fetch_row()[0];
         }
         
-        return ['months' => $months, 'counts' => $counts];
+        return [
+            'months' => $months, 
+            'current' => $currentYearCounts, 
+            'previous' => $previousYearCounts,
+            'currentYear' => $currentYear,
+            'previousYear' => $previousYear
+        ];
     }
 
     private function getCategoryData() {
@@ -181,17 +216,40 @@ class OSASController extends BaseController {
                 $guardId = $_POST['guard_id'] ?? null;
                 
                 if (!$guardId) {
-                    // Fetch the guard ID if not provided
-                    $stmt = $this->db->prepare("SELECT guard_user_id FROM violations WHERE id = ?");
+                    // Fetch the guard ID and other info if not provided
+                    $stmt = $this->db->prepare("SELECT guard_user_id, student_user_id, violation_type, description FROM violations WHERE id = ?");
                     $stmt->bind_param("i", $violationId);
                     $stmt->execute();
-                    $guardId = $stmt->get_result()->fetch_row()[0];
+                    $vData = $stmt->get_result()->fetch_assoc();
+                    $guardId = $vData['guard_user_id'];
+                    $studentUserId = $vData['student_user_id'];
+                    $vType = $vData['violation_type'];
+                    $vDesc = $vData['description'];
+                } else {
+                    // Still need student info for duplicate check
+                    $stmt = $this->db->prepare("SELECT student_user_id, violation_type, description FROM violations WHERE id = ?");
+                    $stmt->bind_param("i", $violationId);
+                    $stmt->execute();
+                    $vData = $stmt->get_result()->fetch_assoc();
+                    $studentUserId = $vData['student_user_id'];
+                    $vType = $vData['violation_type'];
+                    $vDesc = $vData['description'];
                 }
 
                 // Update status
                 $stmt = $this->db->prepare("UPDATE violations SET status = 'received' WHERE id = ?");
                 $stmt->bind_param("i", $violationId);
                 if ($stmt->execute()) {
+                    // Also update any IDENTICAL pending violations
+                    $stmt2 = $this->db->prepare("UPDATE violations SET status = 'received' 
+                                               WHERE student_user_id = ? 
+                                               AND violation_type = ? 
+                                               AND description = ? 
+                                               AND status = 'pending' 
+                                               AND id != ?");
+                    $stmt2->bind_param("issi", $studentUserId, $vType, $vDesc, $violationId);
+                    $stmt2->execute();
+
                     $message = "Violation for $studentName officially received.";
                     // Notify the guard
                     $this->userModel->createNotification($guardId, "OSAS has officially received the violation you submitted for $studentName.", $violationId);
@@ -212,6 +270,26 @@ class OSASController extends BaseController {
                 }
 
                 if ($stmt->execute()) {
+                    // If marked as completed, also check for identical violations
+                    if ($status === 'completed') {
+                        // Fetch current violation details to find duplicates
+                        $stmtDetails = $this->db->prepare("SELECT violation_type, description FROM violations WHERE id = ?");
+                        $stmtDetails->bind_param("i", $violationId);
+                        $stmtDetails->execute();
+                        $vData = $stmtDetails->get_result()->fetch_assoc();
+                        $vType = $vData['violation_type'];
+                        $vDesc = $vData['description'];
+
+                        $stmt2 = $this->db->prepare("UPDATE violations SET status = 'completed' 
+                                                   WHERE student_user_id = ? 
+                                                   AND violation_type = ? 
+                                                   AND description = ? 
+                                                   AND status != 'completed' 
+                                                   AND id != ?");
+                        $stmt2->bind_param("issi", $studentUserId, $vType, $vDesc, $violationId);
+                        $stmt2->execute();
+                    }
+
                     $message = "Violation record updated successfully.";
                     // Notify the student
                     $notifMsg = "Your violation record has been updated by OSAS. Status: " . ucfirst($status) . ". Sanction: " . ($sanction ?: "Pending");
@@ -223,16 +301,45 @@ class OSASController extends BaseController {
                 $studentName = $_POST['student_name'] ?? 'Student';
 
                 if (!$studentUserId) {
-                    $stmt = $this->db->prepare("SELECT student_user_id FROM violations WHERE id = ?");
+                    $stmt = $this->db->prepare("SELECT student_user_id, violation_type, description FROM violations WHERE id = ?");
                     $stmt->bind_param("i", $violationId);
                     $stmt->execute();
-                    $studentUserId = $stmt->get_result()->fetch_row()[0];
+                    $vData = $stmt->get_result()->fetch_assoc();
+                    $studentUserId = $vData['student_user_id'];
+                    $vType = $vData['violation_type'];
+                    $vDesc = $vData['description'];
+                } else {
+                    // Fetch type and desc if we only have studentUserId
+                    $stmt = $this->db->prepare("SELECT violation_type, description FROM violations WHERE id = ?");
+                    $stmt->bind_param("i", $violationId);
+                    $stmt->execute();
+                    $vData = $stmt->get_result()->fetch_assoc();
+                    $vType = $vData['violation_type'];
+                    $vDesc = $vData['description'];
                 }
 
+                // Update the main violation
                 $stmt = $this->db->prepare("UPDATE violations SET status = 'completed' WHERE id = ?");
                 $stmt->bind_param("i", $violationId);
+                
                 if ($stmt->execute()) {
+                    // Also check for and complete any IDENTICAL violations for this student that are still active
+                    // This handles the "double entry" issue where the same violation was recorded twice
+                    $stmt2 = $this->db->prepare("UPDATE violations SET status = 'completed' 
+                                               WHERE student_user_id = ? 
+                                               AND violation_type = ? 
+                                               AND description = ? 
+                                               AND status != 'completed' 
+                                               AND id != ?");
+                    $stmt2->bind_param("issi", $studentUserId, $vType, $vDesc, $violationId);
+                    $stmt2->execute();
+                    $mergedCount = $this->db->affected_rows;
+
                     $message = "Violation sanction marked as completed for $studentName.";
+                    if ($mergedCount > 0) {
+                        $message .= " (Also cleared $mergedCount duplicate record" . ($mergedCount > 1 ? "s" : "") . ")";
+                    }
+
                     // Notify student
                     $notifMsg = "Congratulations! Your sanction has been marked as completed by OSAS. This record has been moved to your history.";
                     $this->userModel->createNotification($studentUserId, $notifMsg, $violationId);
@@ -258,28 +365,16 @@ class OSASController extends BaseController {
             ORDER BY v.created_at DESC
         ");
 
-        // Fetch history (completed)
-        $completedViolations = $this->db->query("
-            SELECT v.*, v.last_action_date as updated_at, u.full_name as student_name, s.student_id_number, s.course, s.year_level, s.section, u.profile_photo, g.full_name as guard_name
-            FROM violations v 
-            JOIN users u ON v.student_user_id = u.id 
-            JOIN students s ON u.id = s.user_id 
-            JOIN users g ON v.guard_user_id = g.id
-            WHERE v.status = 'completed' 
-            ORDER BY v.created_at DESC
-        ");
+        $completedViolations = $this->violationModel->getCompletedViolations();
 
-        $unreadCount = $this->userModel->getUnreadNotificationCount($userId, $_SESSION['role']);
-        $notifications = $this->getNotificationsArray($userId);
+        $navData = $this->getNavData($userId);
 
-        echo $this->render_view('osas/osas_records', [
+        echo $this->render_view('osas/osas_records', array_merge($navData, [
             'activeViolations' => $activeViolations,
             'completedViolations' => $completedViolations,
-            'unreadCount' => $unreadCount,
-            'notifications' => $notifications,
             'message' => $message,
             'active' => 'records'
-        ]);
+        ]));
     }
 
     public function profile() {
@@ -321,7 +416,10 @@ class OSASController extends BaseController {
                 if ($new !== $confirm) {
                     $message = "Error: Passwords do not match.";
                 } else {
-                    $user = $this->userModel->getStudentInfo($userId); // Works for any user
+                    $stmt = $this->db->prepare("SELECT password FROM users WHERE id = ?");
+                    $stmt->bind_param("i", $userId);
+                    $stmt->execute();
+                    $user = $stmt->get_result()->fetch_assoc();
                     if (password_verify($old, $user['password'])) {
                         if ($this->userModel->updatePassword($userId, $new)) {
                             $message = "Password updated successfully!";
@@ -335,17 +433,18 @@ class OSASController extends BaseController {
             }
         }
 
-        $userData = $this->db->query("SELECT * FROM users WHERE id = $userId")->fetch_assoc();
-        $unreadCount = $this->userModel->getUnreadNotificationCount($userId, $_SESSION['role']);
-        $notifications = $this->getNotificationsArray($userId);
+        $stmt = $this->db->prepare("SELECT * FROM users WHERE id = ?");
+        $stmt->bind_param("i", $userId);
+        $stmt->execute();
+        $userData = $stmt->get_result()->fetch_assoc();
+        
+        $navData = $this->getNavData($userId);
 
-        echo $this->render_view('osas/osas_profile', [
+        echo $this->render_view('osas/osas_profile', array_merge($navData, [
             'userData' => $userData,
-            'unreadCount' => $unreadCount,
-            'notifications' => $notifications,
             'message' => $message,
             'active' => 'profile'
-        ]);
+        ]));
     }
 
     public function guards() {
@@ -399,16 +498,13 @@ class OSASController extends BaseController {
             ORDER BY g.name ASC
         ");
 
-        $unreadCount = $this->userModel->getUnreadNotificationCount($userId, $_SESSION['role']);
-        $notifications = $this->getNotificationsArray($userId);
+        $navData = $this->getNavData($userId);
 
-        echo $this->render_view('osas/osas_guards', [
+        echo $this->render_view('osas/osas_guards', array_merge($navData, [
             'guards' => $guards,
-            'unreadCount' => $unreadCount,
-            'notifications' => $notifications,
             'message' => $message,
             'active' => 'guards'
-        ]);
+        ]));
     }
 
     public function guard_ajax() {
@@ -506,6 +602,7 @@ class OSASController extends BaseController {
             }
         }
 
+        // Fetch all students using userModel
         $allAccounts = $this->userModel->getAllStudents();
         
         $studentsByYear = [
@@ -522,30 +619,29 @@ class OSASController extends BaseController {
             '4' => '4th Year', '4th' => '4th Year', '4th Year' => '4th Year'
         ];
 
-        while($row = $allAccounts->fetch_assoc()) {
-            if ($row['role'] === 'STUDENT') {
-                $rawYear = $row['year_level'];
-                $year = $yearMapping[$rawYear] ?? 'Others';
-                
-                if ($year !== 'Others') {
-                    $studentsByYear[$year][] = $row;
-                } else {
-                    if (!isset($studentsByYear['Others'])) $studentsByYear['Others'] = [];
-                    $studentsByYear['Others'][] = $row;
+        if ($allAccounts) {
+            while($row = $allAccounts->fetch_assoc()) {
+                if ($row['role'] === 'STUDENT') {
+                    $rawYear = $row['year_level'];
+                    $year = $yearMapping[$rawYear] ?? 'Others';
+                    
+                    if ($year !== 'Others') {
+                        $studentsByYear[$year][] = $row;
+                    } else {
+                        if (!isset($studentsByYear['Others'])) $studentsByYear['Others'] = [];
+                        $studentsByYear['Others'][] = $row;
+                    }
                 }
             }
         }
 
-        $unreadCount = $this->userModel->getUnreadNotificationCount($_SESSION['user_id'], $_SESSION['role']);
-        $notifications = $this->getNotificationsArray($_SESSION['user_id']);
+        $navData = $this->getNavData($_SESSION['user_id']);
 
-        echo $this->render_view('osas/osas_students', [
+        echo $this->render_view('osas/osas_students', array_merge($navData, [
             'studentsByYear' => $studentsByYear,
-            'unreadCount' => $unreadCount,
-            'notifications' => $notifications,
             'message' => $message,
             'active' => 'students'
-        ]);
+        ]));
     }
 
     public function student_ajax() {
@@ -593,32 +689,50 @@ class OSASController extends BaseController {
             }
         }
 
-        $unreadCount = $this->userModel->getUnreadNotificationCount($userId, $_SESSION['role']);
+        $navData = $this->getNavData($userId);
         $notifResult = $this->userModel->getNotifications($userId, 50, $_SESSION['role']);
         
-        // Convert to array to avoid pointer issues in multiple views
-        $notifications = [];
+        // Full list for the main view
+        $allNotifications = [];
         if ($notifResult) {
             while ($row = $notifResult->fetch_assoc()) {
-                $notifications[] = $row;
+                $allNotifications[] = $row;
             }
         }
 
-        echo $this->render_view('osas/osas_notifications', [
-            'notifications' => $notifications,
-            'unreadCount' => $unreadCount,
+        echo $this->render_view('osas/osas_notifications', array_merge($navData, [
+            'notifications' => $allNotifications,
             'message' => $message,
             'active' => 'notifications'
-        ]);
+        ]));
     }
 
     public function getStats() {
-        $stats = [];
-        $stats['total_violations'] = $this->db->query("SELECT COUNT(*) FROM violations")->fetch_row()[0];
-        $stats['pending_violations'] = $this->db->query("SELECT COUNT(*) FROM violations WHERE status = 'pending'")->fetch_row()[0];
-        $stats['major_violations'] = $this->db->query("SELECT COUNT(*) FROM violations WHERE violation_type = 'Major'")->fetch_row()[0];
-        $stats['minor_violations'] = $this->db->query("SELECT COUNT(*) FROM violations WHERE violation_type = 'Minor'")->fetch_row()[0];
-        $stats['expulsions'] = $this->db->query("SELECT COUNT(*) FROM violations WHERE sanction LIKE '%expulsion%'")->fetch_row()[0];
+        $stats = [
+            'total_violations' => 0,
+            'pending_violations' => 0,
+            'major_violations' => 0,
+            'minor_violations' => 0,
+            'expulsions' => 0
+        ];
+
+        $res = $this->db->query("SELECT 
+            COUNT(*) as total,
+            COUNT(CASE WHEN status NOT IN ('completed', 'dropped') THEN 1 END) as pending,
+            COUNT(CASE WHEN violation_type = 'Major' THEN 1 END) as major,
+            COUNT(CASE WHEN violation_type = 'Minor' THEN 1 END) as minor,
+            COUNT(CASE WHEN sanction LIKE '%expulsion%' THEN 1 END) as expulsion
+            FROM violations");
+
+        if ($res && $row = $res->fetch_assoc()) {
+            $stats = [
+                'total_violations' => $row['total'],
+                'pending_violations' => $row['pending'],
+                'major_violations' => $row['major'],
+                'minor_violations' => $row['minor'],
+                'expulsions' => $row['expulsion']
+            ];
+        }
         return $stats;
     }
 

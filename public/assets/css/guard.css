@@ -211,6 +211,99 @@
     margin-top: -10px;
 }
 
+/* Grid System for Guard Dashboard */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 30px;
+}
+
+.col-12 { grid-column: span 12; }
+.col-8 { grid-column: span 8; }
+.col-4 { grid-column: span 4; }
+
+.notif-full-item {
+    display: flex;
+    align-items: center;
+    padding: 20px 25px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
+    gap: 20px;
+    position: relative;
+}
+
+.notif-full-item:last-child { border-bottom: none; }
+.notif-full-item:hover { background: rgba(255, 255, 255, 0.03); }
+.notif-full-item.unread { 
+    background: rgba(0, 0, 0, 0.25); 
+    border-left: 3px solid var(--sage-green);
+}
+
+.notif-full-item.unread:hover {
+    background: rgba(0, 0, 0, 0.35);
+}
+
+.notif-full-icon {
+    width: 45px;
+    height: 45px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.unread .notif-full-icon {
+    background: rgba(64, 145, 108, 0.2);
+    border: 1px solid rgba(64, 145, 108, 0.3);
+}
+
+.notif-full-content { flex: 1; }
+.notif-full-msg { color: white; font-size: 1rem; font-weight: 500; margin-bottom: 5px; }
+.notif-full-time { font-size: 0.8rem; color: rgba(255, 255, 255, 0.4); }
+
+.notif-full-actions {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.notif-full-item:hover .notif-full-actions { opacity: 1; }
+
+.delete-btn-notif {
+    background: rgba(231, 76, 60, 0.1);
+    color: #e74c3c;
+    border: 1px solid rgba(231, 76, 60, 0.2);
+    width: 35px;
+    height: 35px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1.2rem;
+    transition: all 0.3s ease;
+}
+
+.delete-btn-notif:hover {
+    background: #e74c3c;
+    color: white;
+}
+
+.no-underline { text-decoration: none; }
+
+.new-badge-notif {
+    background: var(--sage-green);
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-left: 10px;
+    vertical-align: middle;
+    letter-spacing: 0.5px;
+}
+
 .search-btn-absolute {
     position: absolute;
     right: 10px;

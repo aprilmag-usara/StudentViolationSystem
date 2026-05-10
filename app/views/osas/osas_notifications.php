@@ -1,3 +1,11 @@
+<?php 
+/** @var array $notifications */
+/** @var string $message */
+/** @var int $unreadCount */
+$notifications = $notifications ?? [];
+$message = $message ?? '';
+$unreadCount = $unreadCount ?? 0;
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -12,10 +20,8 @@
 <body>
     <div class="dashboard-bg-overlay"></div>
 
-    <!-- Navigation & Modals -->
     <?php include __DIR__ . '/../navbar.php'; ?>
 
-    <!-- Main Content -->
     <main class="main-dashboard">
         <div class="welcome-section">
             <div class="flex-between align-end">
@@ -31,31 +37,40 @@
             </div>
         </div>
 
-        <?php if (!empty($message)): ?>
-            <div class="toast-container" id="toast">
-                <div class="toast-message">
-                    <?php echo $message; ?>
-                </div>
-            </div>
-        <?php endif; ?>
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                <?php if (!empty($message)): ?>
+                    const msg = "<?php echo addslashes($message); ?>";
+                    const isError = msg.toLowerCase().includes('error') || msg.toLowerCase().includes('failed');
+                    showToast(isError ? 'Notification' : 'Success', msg, isError ? 'error' : 'success');
+                <?php endif; ?>
+            });
+        </script>
 
         <div class="max-w-800 mx-auto">
             <div class="glass-card p-0 overflow-hidden">
                 <div class="p-20 border-bottom-glass flex-between align-center">
                     <h3 class="m-0 text-sage-green">Recent Transactions</h3>
-                    <span class="fs-0-8 text-white-40"><?php echo count($notifications); ?> total</span>
+                    <span class="fs-0-8 text-white-40"><?php echo is_array($notifications) ? count($notifications) : 0; ?> total</span>
                 </div>
                 
                 <?php if (!empty($notifications)): ?>
                     <div class="notif-list-full">
-                        <?php foreach ($notifications as $n): ?>
-                            <div class="notif-row <?php echo $n['is_read'] ? '' : 'unread'; ?>">
+                        <?php foreach ($notifications as $n): 
+                            $targetUrl = "index.php?url=osas/records" . (isset($n['violation_id']) ? "&violation_id=" . $n['violation_id'] : "");
+                        ?>
+                            <div class="notif-row <?php echo $n['is_read'] ? '' : 'unread'; ?>" data-url="<?php echo $targetUrl; ?>" style="cursor: pointer;">
                                 <div class="notif-indicator"></div>
                                 <div class="notif-main-content">
-                                    <div class="notif-msg"><?php echo htmlspecialchars($n['message']); ?></div>
+                                    <div class="notif-msg">
+                                        <?php echo htmlspecialchars($n['message']); ?>
+                                        <?php if (!$n['is_read']): ?>
+                                            <span class="new-badge-notif">NEW</span>
+                                        <?php endif; ?>
+                                    </div>
                                     <div class="notif-time"><?php echo date('M d, Y | h:i A', strtotime($n['created_at'])); ?></div>
                                 </div>
-                                <div class="notif-row-actions">
+                                <div class="notif-row-actions" onclick="event.stopPropagation();">
                                     <?php if (!$n['is_read']): ?>
                                         <form method="POST" class="display-inline">
                                             <input type="hidden" name="notification_id" value="<?php echo $n['id']; ?>">
@@ -84,18 +99,6 @@
             </div>
         </div>
     </main>
-
-    <!-- Logout Modal -->
-    <div id="logoutModal" class="modal-overlay">
-        <div class="modal-content">
-            <span class="modal-close" onclick="hideLogoutModal()">&times;</span>
-            <h2>Logging Out?</h2>
-            <div class="modal-buttons">
-                <button class="modal-btn modal-btn-no" onclick="hideLogoutModal()">Cancel</button>
-                <a href="index.php?url=auth/logout" class="modal-btn modal-btn-yes" style="text-decoration: none;">Yes, logout</a>
-            </div>
-        </div>
-    </div>
 
     <script src="assets/js/osas.js"></script>
 </body>

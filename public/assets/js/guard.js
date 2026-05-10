@@ -62,8 +62,14 @@ function initScanner() {
             stopBtn.style.display = "none";
             scannerIcon.style.display = "block";
             
-            searchInput.value = decodedText;
-            searchForm.submit();
+            // Check if the scanned text is a URL for user details
+            if (decodedText.includes('view_user')) {
+                window.location.href = decodedText;
+            } else {
+                // If it's a barcode (Student ID), fill the search input and submit
+                searchInput.value = decodedText;
+                searchForm.submit();
+            }
         }).catch(err => console.error("Error stopping scanner:", err));
     };
 
@@ -86,7 +92,7 @@ function initScanner() {
             startBtn.style.display = "inline-block";
             stopBtn.style.display = "none";
             scannerIcon.style.display = "block";
-            scannerTitle.innerText = "QR Code Scanner";
+            scannerTitle.innerText = "Barcode Scanner";
         });
     });
 
@@ -96,8 +102,8 @@ function initScanner() {
             startBtn.style.display = "inline-block";
             stopBtn.style.display = "none";
             scannerIcon.style.display = "block";
-            scannerTitle.innerText = "QR Code Scanner";
-            scannerDesc.innerText = "Position the student ID QR code within the frame";
+            scannerTitle.innerText = "Barcode Scanner";
+            scannerDesc.innerText = "Position the student ID barcode within the frame";
         }).catch(err => console.error("Error stopping scanner:", err));
     });
 }

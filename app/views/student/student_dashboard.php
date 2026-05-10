@@ -1,3 +1,11 @@
+<?php 
+/** @var array $studentInfo */
+/** @var array $stats */
+/** @var mysqli_result|null $violations */
+$studentInfo = $studentInfo ?? ['full_name' => 'Student'];
+$stats = $stats ?? ['pending' => 0, 'total' => 0];
+$violations = $violations ?? null;
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -13,25 +21,23 @@
 <body>
     <div class="dashboard-bg-overlay"></div>
 
-    <!-- Navigation & Modals -->
     <?php include __DIR__ . '/../navbar.php'; ?>
 
-    <!-- Main Content Area -->
     <main class="main-dashboard">
         <div class="welcome-section">
             <div class="welcome-header">
                 <div>
-                    <h1 class="fs-2-5">Welcome back, <span class="text-mint-green"><?php echo htmlspecialchars($studentInfo['full_name']); ?></span>!</h1>
-                    <p class="text-white-60">Here is an overview of your current disciplinary status.</p>
+                    <h1 class="glow-text">Hello, <?php echo explode(' ', $studentInfo['full_name'])[0]; ?>!</h1>
+                    <p class="subtitle-text">Your personal disciplinary overview.</p>
                 </div>
                 <div class="quick-stats">
-                    <div class="stat-pill">
+                    <div class="stat-card-modern pending">
                         <span class="label">Pending</span>
-                        <span class="value"><?php echo $stats['pending']; ?></span>
+                        <span class="value"><?php echo $stats['pending'] ?? 0; ?></span>
                     </div>
-                    <div class="stat-pill">
-                        <span class="label">Total</span>
-                        <span class="value"><?php echo $stats['total']; ?></span>
+                    <div class="stat-card-modern total">
+                        <span class="label">Total Cases</span>
+                        <span class="value"><?php echo $stats['total'] ?? 0; ?></span>
                     </div>
                 </div>
             </div>
@@ -59,16 +65,16 @@
                                     </div>
                                     <h4 class="v-title"><?php echo htmlspecialchars($v['description']); ?></h4>
                                     <div class="v-meta">
-                                        <span class="v-date"><i class="far fa-calendar-alt mr-5"></i><?php echo date('M d, Y', strtotime($v['violation_time'])); ?></span>
+                                        <span class="v-date"><i class="far fa-calendar-alt mr-5"></i><?php echo date('M d, Y', strtotime($v['created_at'])); ?></span>
                                         <span class="v-guard"><i class="fas fa-user-shield mr-5"></i><?php echo htmlspecialchars($v['recorded_by_guard_name'] ?: 'N/A'); ?></span>
                                     </div>
                                 </div>
                                 
                                 <div class="v-status-section">
                                     <div class="v-sanction">
-                                        <span class="label">Sanction</span>
-                                        <span class="value <?php echo $v['sanction'] ? 'text-mint-green' : 'text-white-30'; ?>">
-                                            <?php echo $v['sanction'] ?: 'Pending Review'; ?>
+                                        <span class="label">Assigned Sanction</span>
+                                        <span class="value <?php echo $v['sanction'] ? 'text-mint-green' : 'text-white-20'; ?>">
+                                            <?php echo $v['sanction'] ?: 'Under Review'; ?>
                                         </span>
                                     </div>
                                     <div class="v-actions">
@@ -76,7 +82,7 @@
                                             <?php echo ucfirst(str_replace('_', ' ', $v['status'])); ?>
                                         </span>
                                         <button class="btn-details" onclick='showViolationDetails(<?php echo json_encode($v); ?>)'>
-                                            Details
+                                            View Details
                                         </button>
                                     </div>
                                 </div>
@@ -84,10 +90,10 @@
                             <?php endwhile; ?>
                         </div>
                     <?php else: ?>
-                        <div class="text-center py-60">
-                            <div class="empty-state-icon mb-20">🎉</div>
-                            <h2 class="text-mint-green mb-10">You're All Clear!</h2>
-                            <p class="text-white-50 fw-300 fs-1-1">You have a clean record. Keep it up and maintain good discipline!</p>
+                        <div class="text-center py-80">
+                           
+                            <h2 class="text-mint-green fw-700 mb-15">All Clear!</h2>
+                            <p class="text-white-40 fw-300 fs-1-1 max-w-500 mx-auto">You currently have no recorded violations. Keep maintaining your excellent disciplinary standing!</p>
                         </div>
                     <?php endif; ?>
                 </div>

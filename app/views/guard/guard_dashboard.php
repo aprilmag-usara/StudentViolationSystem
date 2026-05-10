@@ -1,3 +1,13 @@
+<?php 
+/** @var string $displayName */
+/** @var array|null $studentData */
+/** @var mysqli_result|null $guardList */
+/** @var string $message */
+$displayName = $displayName ?? 'Guard';
+$studentData = $studentData ?? null;
+$guardList = $guardList ?? null;
+$message = $message ?? '';
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,9 +21,8 @@
     <script src="https://unpkg.com/html5-qrcode"></script>
 </head>
 <body>
-    <div class="dashboard-bg-overlay"></div>
+   <div class="dashboard-bg-overlay"></div>
 
-    <!-- Navigation & Modals -->
     <?php include __DIR__ . '/../navbar.php'; ?>
 
     <main class="main-dashboard">
@@ -32,18 +41,20 @@
             </div>
         <?php endif; ?>
 
-        <div class="dashboard-grid grid-single">
-            <!-- QR Scanner & Search Section -->
-            <div class="glass-card">
+        <div class="dashboard-grid">
+            <!-- Scanner & Search Section -->
+            <div class="glass-card <?php echo $studentData ? 'col-4' : 'col-12'; ?>">
                 <div class="card-header">
                     <h3 class="text-sage-green">Scan or Search Student</h3>
                     <span class="fs-0-8 text-white-50">Today: <?php echo date('M d, Y'); ?></span>
                 </div>
 
                 <div class="scanner-area" id="scannerArea">
-                    <div id="scannerIcon" class="scanner-icon"><img src="https://proicons.com/icon/11866.svg" alt="Camera icon" width="70" height="70"></div>
-                    <h4 id="scannerTitle">QR Code Scanner</h4>
-                    <p id="scannerDesc" class="scanner-desc">Position the student ID QR code within the frame</p>
+                    <div id="scannerIcon" class="scanner-icon">
+                        <img src="https://proicons.com/icon/11866.svg" alt="Camera icon" width="70" height="70">
+                    </div>
+                    <h4 id="scannerTitle">Barcode Scanner</h4>
+                    <p id="scannerDesc" class="scanner-desc">Position the student ID barcode within the frame</p>
                     
                     <!-- Scanner Container -->
                     <div id="reader" class="reader-container"></div>
@@ -70,7 +81,7 @@
 
             <?php if ($studentData): ?>
             <!-- Student Result & Violation Form -->
-            <div class="student-result-card">
+            <div class="student-result-card col-8">
                 <!-- Student Info -->
                 <div class="glass-card">
                     <h3 class="student-info-header">Student Information</h3>
@@ -82,7 +93,7 @@
                                 ? 'assets/img/profiles/' . $studentData['profile_photo'] 
                                 : '';
                         ?>
-                        <img src="<?php echo $photoPath; ?>" onerror="this.src='<?php echo $avatar_url; ?>'" class="profile-img-large">
+                        <img src="<?php echo $photoPath; ?>" onerror="this.src='<?php echo $avatar_url; ?>'" class="profile-img-large" alt="Student Photo">
                         <h2 class="mb-5"><?php echo htmlspecialchars($full_name); ?></h2>
                         <p class="text-sage-green fw-600"><?php echo htmlspecialchars($studentData['student_id_number']); ?></p>
                     </div>

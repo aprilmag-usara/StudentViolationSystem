@@ -1,8 +1,3 @@
-/**
- * Shared Navigation and Modal Functionality
- */
-
-// Helper to prevent background scroll
 function toggleBodyScroll(prevent) {
     if (prevent) {
         document.body.classList.add('modal-open');
@@ -70,7 +65,6 @@ function hideLogoutModal() {
     }
 }
 
-// Global Notifications
 function toggleNotifications() {
     const dropdown = document.getElementById('notifDropdown');
     if (dropdown) {
@@ -83,9 +77,6 @@ function toggleNotifications() {
     }
 }
 
-/**
- * Event Listeners Initialization
- */
 document.addEventListener('DOMContentLoaded', () => {
     // Notification Toggles
     const notifLinks = ['osasNotifLink', 'navNotifLink'];
@@ -147,13 +138,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize Toast
     initToast();
+}
 });
 
-/**
- * Common UI Helpers
- */
-
-// Auto-hide toast notifications
 function initToast() {
     const toast = document.getElementById('toast');
     if (toast) {
@@ -164,7 +151,6 @@ function initToast() {
     }
 }
 
-// Close dropdowns/modals on outside click
 window.addEventListener('click', function(event) {
     const logoutModal = document.getElementById('logoutModal');
     const notifDropdown = document.getElementById('notifDropdown');

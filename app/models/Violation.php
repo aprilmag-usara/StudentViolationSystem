@@ -7,6 +7,20 @@ class Violation {
     }
 
     public function create($data) {
+        // Check for duplicates (same student, same type, same description, not completed)
+        // within the last 5 minutes to prevent accidental double submission
+        $stmt = $this->conn->prepare("SELECT id FROM violations 
+                                    WHERE student_user_id = ? 
+                                    AND violation_type = ? 
+                                    AND description = ? 
+                                    AND status NOT IN ('completed', 'dropped')
+                                    AND created_at > DATE_SUB(NOW(), INTERVAL 5 MINUTE)");
+        $stmt->bind_param("iss", $data['student_user_id'], $data['violation_type'], $data['description']);
+        $stmt->execute();
+        if ($stmt->get_result()->num_rows > 0) {
+            return false; // Duplicate found
+        }
+
         $stmt = $this->conn->prepare("INSERT INTO violations (student_user_id, guard_user_id, recorded_by_guard_name, violation_type, description, violation_time) VALUES (?, ?, ?, ?, ?, ?)");
         if (!$stmt) {
             error_log("Database error (recorded_by_guard_name column might be missing): " . $this->conn->error);
@@ -56,6 +70,17 @@ class Violation {
         }
         $stmt->execute();
         return $stmt->get_result();
+    }
+
+    public function getCompletedViolations() {
+        $sql = "SELECT v.*, v.last_action_date as updated_at, u.full_name as student_name, s.student_id_number, s.course, s.year_level, s.section, u.profile_photo, g.full_name as guard_name
+                FROM violations v 
+                JOIN users u ON v.student_user_id = u.id 
+                JOIN students s ON u.id = s.user_id 
+                JOIN users g ON v.guard_user_id = g.id
+                WHERE v.status = 'completed' 
+                ORDER BY v.created_at DESC";
+        return $this->conn->query($sql);
     }
 }
 ?>

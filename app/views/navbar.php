@@ -55,7 +55,7 @@ $active = $active ?? '';
             <li><a href="index.php?url=<?php echo $role; ?>/dashboard" class="<?php echo $active === 'home' ? 'active' : ''; ?>">Home Page</a></li>
             <li><a href="index.php?url=<?php echo $role; ?>/records" class="<?php echo $active === 'records' ? 'active' : ''; ?>">Records</a></li>
             <li>
-                <a href="#" id="navNotifLink" class="relative-pos">
+                <a href="#" id="navNotifLink" class="relative-pos <?php echo $active === 'notifications' ? 'active' : ''; ?>">
                     Notifications
                     <?php if (isset($unreadCount) && $unreadCount > 0): ?>
                         <span class="notif-badge"><?php echo $unreadCount; ?></span>

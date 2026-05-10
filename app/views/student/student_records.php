@@ -1,3 +1,7 @@
+<?php 
+/** @var mysqli_result $violations */
+$violations = $violations ?? null;
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -13,7 +17,6 @@
 <body>
     <div class="dashboard-bg-overlay"></div>
 
-    <!-- Navigation & Modals -->
     <?php include __DIR__ . '/../navbar.php'; ?>
 
     <main class="main-dashboard">
@@ -84,7 +87,7 @@
                     </div>
                 <?php else: ?>
                     <div class="text-center py-60">
-                        <div class="empty-state-icon mb-20">🎉</div>
+                       
                         <h2 class="text-mint-green mb-10">Clean Record!</h2>
                         <p class="text-white-50 fw-300 fs-1-1">You don't have any violation records yet.</p>
                     </div>

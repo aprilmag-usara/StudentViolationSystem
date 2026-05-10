@@ -1,3 +1,13 @@
+<?php 
+/** @var string $displayName */
+/** @var mysqli_result $violations */
+/** @var int $unreadCount */
+/** @var array $notifications */
+$displayName = $displayName ?? 'Guard';
+$violations = $violations ?? null;
+$unreadCount = $unreadCount ?? 0;
+$notifications = $notifications ?? [];
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>

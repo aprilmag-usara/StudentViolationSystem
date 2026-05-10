@@ -1,546 +1,78 @@
-/**
- * OSAS Dashboard Charts
- */
-
 document.addEventListener('DOMContentLoaded', () => {
-    initCharts();
+    // Notification item clicks
+    const notifItems = document.querySelectorAll('.notif-row');
+    notifItems.forEach(item => {
+        item.addEventListener('click', () => {
+            const url = item.getAttribute('data-url');
+            if (url) window.location.href = url;
+        });
+    });
 });
 
-function initCharts() {
-    // Shared chart options
-    const sharedOptions = {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                display: false
-            }
-        },
-        scales: {
-            y: {
-                beginAtZero: true,
-                grid: { color: 'rgba(255,255,255,0.05)' },
-                ticks: { color: 'rgba(255,255,255,0.5)', font: { size: 10 } }
-            },
-            x: {
-                grid: { display: false },
-                ticks: { color: 'rgba(255,255,255,0.5)', font: { size: 10 } }
-            }
-        }
-    };
-
-    // Use global chartData if available, otherwise use defaults
-    const data = typeof chartData !== 'undefined' ? chartData : {
-        monthly: { months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'], counts: [0,0,0,0,0,0,0,0,0,0,0,0] },
-        category: { Minor: 0, Major: 0 },
-        course: { courses: [], counts: [] },
-        yearLevel: { levels: [], counts: [] }
-    };
-
-    // 1. Violation Trends Chart (Line Chart)
-    const trendsCtx = document.getElementById('violationTrendsChart');
-    if (trendsCtx) {
-        new Chart(trendsCtx, {
-            type: 'line',
-            data: {
-                labels: data.monthly.months,
-                datasets: [{
-                    label: 'Violations',
-                    data: data.monthly.counts,
-                    borderColor: '#40916c',
-                    backgroundColor: 'rgba(64, 145, 108, 0.1)',
-                    borderWidth: 3,
-                    tension: 0.4,
-                    fill: true,
-                    pointBackgroundColor: '#fff',
-                    pointBorderColor: '#40916c',
-                    pointRadius: 4,
-                    pointHoverRadius: 6
-                }]
-            },
-            options: sharedOptions
-        });
-    }
-
-    // 2. Type Distribution (Doughnut Chart)
-    const categoryCtx = document.getElementById('violationCategoryChart');
-    if (categoryCtx) {
-        new Chart(categoryCtx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Minor', 'Major'],
-                datasets: [{
-                    data: [data.category.Minor, data.category.Major],
-                    backgroundColor: ['#f1c40f', '#e74c3c'],
-                    borderWidth: 0,
-                    hoverOffset: 10
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                cutout: '75%',
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            color: 'rgba(255,255,255,0.7)',
-                            padding: 20,
-                            font: { family: 'Poppins', size: 11 }
-                        }
-                    }
-                }
-            }
-        });
-    }
-
-    // 3. Top Course Cases (Bar Chart)
-    const courseCtx = document.getElementById('courseChart');
-    if (courseCtx) {
-        new Chart(courseCtx, {
-            type: 'bar',
-            data: {
-                labels: data.course.courses.length > 0 ? data.course.courses : ['None'],
-                datasets: [{
-                    data: data.course.counts.length > 0 ? data.course.counts : [0],
-                    backgroundColor: '#40916c',
-                    borderRadius: 6
-                }]
-            },
-            options: sharedOptions
-        });
-    }
-
-    // 4. Year Level Growth (Bar Chart)
-    const yearLevelCtx = document.getElementById('yearLevelChart');
-    if (yearLevelCtx) {
-        new Chart(yearLevelCtx, {
-            type: 'bar',
-            data: {
-                labels: data.yearLevel.levels.length > 0 ? data.yearLevel.levels.map(l => l + (isNaN(l) ? '' : ' Year')) : ['None'],
-                datasets: [{
-                    data: data.yearLevel.counts.length > 0 ? data.yearLevel.counts : [0],
-                    backgroundColor: 'rgba(64, 145, 108, 0.7)',
-                    borderRadius: 6
-                }]
-            },
-            options: sharedOptions
-        });
-    }
-}
-
 /**
- * OSAS Modal & UI Logic
+ * Violation Record Modal Logic
  */
-
-// Profile Modals
-function showEditModal() { 
-    const modal = document.getElementById('editProfileModal');
-    if (modal) {
-        modal.style.display = 'flex';
-        toggleBodyScroll(true);
-    }
-}
-
-function hideEditModal() { 
-    const modal = document.getElementById('editProfileModal');
-    if (modal) {
-        modal.style.display = 'none';
-        toggleBodyScroll(false);
-    }
-}
-
-function showPasswordModal() { 
-    const modal = document.getElementById('passwordModal');
-    if (modal) {
-        modal.style.display = 'flex';
-        toggleBodyScroll(true);
-    }
-}
-
-function hidePasswordModal() { 
-    const modal = document.getElementById('passwordModal');
-    if (modal) {
-        modal.style.display = 'none';
-        toggleBodyScroll(false);
-    }
-}
-
-// Records Management
 function showViolationEditModal(v) {
     const modal = document.getElementById('editModal');
     if (!modal) return;
 
-    const fields = {
-        'edit_v_id': v.id,
-        'edit_s_user_id': v.student_user_id,
-        'edit_desc': v.description,
-        'edit_status': v.status,
-        'edit_sanction': v.sanction || ''
-    };
+    // Populate Modal Fields
+    document.getElementById('edit_v_id').value = v.id;
+    document.getElementById('edit_s_user_id').value = v.student_user_id;
+    document.getElementById('edit_name').innerText = v.student_name;
+    document.getElementById('edit_id_num').innerText = v.student_id_number;
+    document.getElementById('edit_course_year').innerText = `${v.course} - ${v.year_level}${v.section}`;
+    document.getElementById('edit_desc').value = v.description;
+    document.getElementById('edit_status').value = v.status;
+    document.getElementById('edit_sanction').value = v.sanction || '';
 
-    for (const [id, value] of Object.entries(fields)) {
-        const el = document.getElementById(id);
-        if (el) el.value = value;
-    }
-
-    const textFields = {
-        'edit_name': v.student_name,
-        'edit_id_num': v.student_id_number,
-        'edit_course_year': `${v.course} - ${v.year_level}`
-    };
-
-    for (const [id, text] of Object.entries(textFields)) {
-        const el = document.getElementById(id);
-        if (el) el.innerText = text;
-    }
-    
-    const photoEl = document.getElementById('edit_photo');
-    if (photoEl) {
+    // Handle Photo
+    const photoImg = document.getElementById('edit_photo');
+    if (photoImg) {
         const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(v.student_name)}&background=1b4332&color=fff&size=100`;
-        photoEl.src = v.profile_photo && v.profile_photo !== 'default_profile.png' 
+        photoImg.src = v.profile_photo && v.profile_photo !== 'default_profile.png' 
             ? `assets/img/profiles/${v.profile_photo}` 
             : avatarUrl;
     }
 
     modal.style.display = 'flex';
-    toggleBodyScroll(true);
+    if (typeof toggleBodyScroll === 'function') toggleBodyScroll(true);
 }
 
 function hideViolationEditModal() {
     const modal = document.getElementById('editModal');
     if (modal) {
         modal.style.display = 'none';
-        toggleBodyScroll(false);
+        if (typeof toggleBodyScroll === 'function') toggleBodyScroll(false);
     }
 }
 
-// Guard Activity
-function viewGuardRecords(name) {
-    const modal = document.getElementById('guardModal');
-    const loading = document.getElementById('modalLoading');
-    const content = document.getElementById('modalContent');
-    const activityList = document.getElementById('activityList');
-    
-    if (!modal || !loading || !content || !activityList) return;
-
-    const titleEl = document.getElementById('modalTitle');
-    const subtitleEl = document.getElementById('modalSubtitle');
-    if (titleEl) titleEl.innerText = name;
-    if (subtitleEl) subtitleEl.innerText = `Full reporting history for ${name}`;
-    
-    modal.style.display = 'flex';
-    toggleBodyScroll(true);
-    loading.style.display = 'block';
-    content.style.display = 'none';
-
-    fetch(`index.php?url=osas/guard_ajax&name=${encodeURIComponent(name)}`)
-        .then(r => r.json())
-        .then(data => {
-            activityList.innerHTML = '';
-            if (data.records && data.records.length > 0) {
-                data.records.forEach(v => {
-                    const item = document.createElement('div');
-                    item.className = 'history-item';
-                    item.innerHTML = `
-                        <div class="history-info">
-                            <h4>${v.student_name}</h4>
-                            <p>${v.student_id_number} | ${v.violation_type} Violation</p>
-                            <p style="font-size: 0.7rem; margin-top: 5px; opacity: 0.6;">${new Date(v.created_at).toLocaleString()}</p>
-                        </div>
-                        <div class="history-badge ${v.violation_type.toLowerCase()}">${v.violation_type}</div>
-                    `;
-                    activityList.appendChild(item);
-                });
-            } else {
-                activityList.innerHTML = '<div style="padding:40px; text-align:center; opacity:0.3;">No records found for this guard.</div>';
-            }
-            loading.style.display = 'none';
-            content.style.display = 'block';
-        })
-        .catch(err => {
-            console.error('Error fetching guard records:', err);
-            activityList.innerHTML = '<div style="padding:40px; text-align:center; color:#e74c3c;">Failed to load records.</div>';
-            loading.style.display = 'none';
-            content.style.display = 'block';
-        });
-}
-
-function hideGuardModal() {
-    const modal = document.getElementById('guardModal');
-    if (modal) {
-        modal.style.display = 'none';
-        toggleBodyScroll(false);
+// Close modal on outside click
+window.addEventListener('click', (event) => {
+    const editModal = document.getElementById('editModal');
+    if (event.target === editModal) {
+        hideViolationEditModal();
     }
-}
 
-// Student Management
-function viewStudent(id) {
-    const modal = document.getElementById('studentModal');
-    const loading = document.getElementById('modalLoading');
-    const content = document.getElementById('modalContent');
-    
-    if (!modal || !loading || !content) return;
-
-    modal.style.display = 'flex';
-    toggleBodyScroll(true);
-    loading.style.display = 'block';
-    content.style.display = 'none';
-
-    fetch(`index.php?url=osas/student_ajax&id=${id}`)
-        .then(r => r.json())
-        .then(data => {
-            const s = data.student;
-            const vs = data.violations;
-
-            const fields = {
-                'det_name': s.full_name,
-                'det_id': s.role === 'STUDENT' ? s.student_id_number : s.role,
-                'det_course': s.role === 'STUDENT' ? s.course : 'System Staff',
-                'det_year_sec': s.role === 'STUDENT' ? `${s.year_level} - ${s.section}` : 'N/A',
-                'det_bio': s.bio || 'No biography provided.'
-            };
-
-            // Store student data for edit/delete
-            window.currentStudent = s;
-
-            for (const [id, val] of Object.entries(fields)) {
-                const el = document.getElementById(id);
-                if (el) el.innerText = val;
-            }
-
-            const photoEl = document.getElementById('det_photo');
-            if (photoEl) {
-                const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(s.full_name)}&background=1b4332&color=fff&size=150`;
-                photoEl.src = s.profile_photo && s.profile_photo !== 'default_profile.png' 
-                    ? `assets/img/profiles/${s.profile_photo}` 
-                    : avatarUrl;
-            }
-
-            const historyList = document.getElementById('det_history');
-            if (historyList) {
-                historyList.innerHTML = '';
-                if (vs && vs.length > 0) {
-                    vs.forEach(v => {
-                        const item = document.createElement('div');
-                        item.className = 'history-item-minimal';
-                        item.innerHTML = `
-                            <div class="history-item-top">
-                                <span class="badge-v-type ${v.violation_type.toLowerCase()}">${v.violation_type}</span>
-                                <span class="history-item-date">${new Date(v.created_at).toLocaleDateString(undefined, {month:'short', day:'numeric', year:'numeric'})}</span>
-                            </div>
-                            <div class="history-item-desc">${v.description}</div>
-                            <div class="history-item-footer">
-                                <div class="reporter-info">
-                                    <span class="label">Reported by:</span>
-                                    <span class="value">${v.guard_name}</span>
-                                </div>
-                                <span class="status-indicator status-${v.status}">${v.status.replace('_', ' ')}</span>
-                            </div>
-                        `;
-                        historyList.appendChild(item);
-                    });
-                } else {
-                    historyList.innerHTML = '<div class="no-records-placeholder">No violation history available.</div>';
-                }
-            }
-
-            loading.style.display = 'none';
-            content.style.display = 'block';
-        })
-        .catch(err => {
-            console.error('Error:', err);
-            loading.innerText = 'Error loading student details.';
-        });
-}
-
-function hideStudentModal() {
-    const modal = document.getElementById('studentModal');
-    if (modal) {
-        modal.style.display = 'none';
-        toggleBodyScroll(false);
-    }
-}
-
-// Student CRUD Modals
-function showAddStudentModal() {
-    const modal = document.getElementById('addStudentModal');
-    if (modal) {
-        modal.style.display = 'flex';
-        toggleBodyScroll(true);
-    }
-}
-
-function hideAddStudentModal() {
-    const modal = document.getElementById('addStudentModal');
-    if (modal) {
-        modal.style.display = 'none';
-        toggleBodyScroll(false);
-    }
-}
-
-function showEditStudentModal() {
-    const s = window.currentStudent;
-    if (!s) return;
-
-    document.getElementById('edit_user_id').value = s.id;
-    document.getElementById('edit_full_name').value = s.full_name;
-    document.getElementById('edit_student_id').value = s.student_id_number;
-    
-    // Helper to set select value or add option if missing
-    const setSelectValue = (id, val) => {
-        const el = document.getElementById(id);
-        if (!el) return;
-        
-        // Try setting value
-        el.value = val;
-        
-        // If value not set (meaning option doesn't exist), add it
-        if (el.selectedIndex === -1 && val) {
-            const opt = document.createElement('option');
-            opt.value = val;
-            opt.text = val;
-            el.add(opt);
-            el.value = val;
+    // Close other modals
+    const modals = [
+        'addGuardModal', 'editGuardModal', 'guardModal', 
+        'addStudentModal', 'editStudentModal', 'deleteStudentModal', 'studentModal'
+    ];
+    modals.forEach(id => {
+        const modal = document.getElementById(id);
+        if (event.target === modal) {
+            modal.style.display = 'none';
+            if (typeof toggleBodyScroll === 'function') toggleBodyScroll(false);
         }
-    };
-
-    setSelectValue('edit_course', s.course);
-    setSelectValue('edit_year_level', s.year_level);
-    document.getElementById('edit_section').value = s.section;
-
-    document.getElementById('editStudentModal').style.display = 'flex';
-}
-
-function hideEditStudentModal() {
-    document.getElementById('editStudentModal').style.display = 'none';
-}
-
-function confirmDeleteStudent() {
-    const s = window.currentStudent;
-    if (!s) return;
-
-    document.getElementById('delete_user_id').value = s.id;
-    document.getElementById('deleteStudentModal').style.display = 'flex';
-}
-
-function hideDeleteStudentModal() {
-    document.getElementById('deleteStudentModal').style.display = 'none';
-}
-
-// Student Search & Filtering (On-page)
-document.addEventListener('DOMContentLoaded', () => {
-    const searchInput = document.getElementById('studentSearch');
-
-    if (searchInput) {
-        searchInput.addEventListener('input', function() {
-            const query = this.value.toLowerCase().trim();
-            const cards = document.querySelectorAll('.student-mini-card');
-            const sections = document.querySelectorAll('.year-section');
-
-            cards.forEach(card => {
-                const name = card.querySelector('h4').innerText.toLowerCase();
-                const id = card.querySelector('p').innerText.toLowerCase();
-                
-                if (name.includes(query) || id.includes(query)) {
-                    card.style.display = 'flex';
-                    card.classList.add('is-visible');
-                } else {
-                    card.style.display = 'none';
-                    card.classList.remove('is-visible');
-                }
-            });
-
-            // Show/Hide sections based on visible cards
-            let totalVisible = 0;
-            sections.forEach(section => {
-                const visibleInPage = section.querySelectorAll('.student-mini-card.is-visible').length;
-                if (query === '') {
-                    section.style.display = 'block';
-                    totalVisible++; // Just to ensure noResults stays hidden
-                } else {
-                    section.style.display = visibleInPage === 0 ? 'none' : 'block';
-                    totalVisible += visibleInPage;
-                }
-            });
-
-            // Handle empty state
-            const noResults = document.getElementById('noResults');
-            if (noResults) {
-                if (query === '') {
-                    noResults.classList.add('display-none');
-                    noResults.style.display = 'none';
-                } else {
-                    if (totalVisible === 0) {
-                        noResults.classList.remove('display-none');
-                        noResults.style.display = 'block';
-                    } else {
-                        noResults.classList.add('display-none');
-                        noResults.style.display = 'none';
-                    }
-                }
-            }
-        });
-
-        // Initialize cards as visible
-        document.querySelectorAll('.student-mini-card').forEach(c => c.classList.add('is-visible'));
-    }
-
-    // Guard Search & Filtering
-    const guardSearchInput = document.getElementById('guardSearch');
-    if (guardSearchInput) {
-        guardSearchInput.addEventListener('input', function() {
-            const query = this.value.toLowerCase().trim();
-            const cards = document.querySelectorAll('.guard-card');
-            let visibleCount = 0;
-
-            cards.forEach(card => {
-                const name = card.querySelector('h3').innerText.toLowerCase();
-                if (name.includes(query)) {
-                    card.style.display = 'flex';
-                    visibleCount++;
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-
-            const noResults = document.getElementById('noGuardResults');
-            if (noResults) {
-                if (query !== '' && visibleCount === 0) {
-                    noResults.style.display = 'block';
-                    noResults.classList.remove('display-none');
-                } else {
-                    noResults.style.display = 'none';
-                    noResults.classList.add('display-none');
-                }
-            }
-        });
-    }
+    });
 });
-
-function showEditGuardModal(id, name) {
-    const modal = document.getElementById('editGuardModal');
-    if (modal) {
-        document.getElementById('editGuardId').value = id;
-        document.getElementById('editGuardName').value = name;
-        modal.style.display = 'flex';
-        toggleBodyScroll(true);
-    }
-}
-
-function hideEditGuardModal() {
-    const modal = document.getElementById('editGuardModal');
-    if (modal) {
-        modal.style.display = 'none';
-        toggleBodyScroll(false);
-    }
-}
 
 function showAddGuardModal() {
     const modal = document.getElementById('addGuardModal');
     if (modal) {
         modal.style.display = 'flex';
-        toggleBodyScroll(true);
+        if (typeof toggleBodyScroll === 'function') toggleBodyScroll(true);
     }
 }
 
@@ -548,18 +80,248 @@ function hideAddGuardModal() {
     const modal = document.getElementById('addGuardModal');
     if (modal) {
         modal.style.display = 'none';
-        toggleBodyScroll(false);
+        if (typeof toggleBodyScroll === 'function') toggleBodyScroll(false);
     }
 }
 
-// Generic Outside Click Handler for OSAS specific modals
-window.addEventListener('click', (e) => {
-    const modals = ['editProfileModal', 'passwordModal', 'editModal', 'guardModal', 'studentModal', 'editGuardModal', 'addGuardModal'];
-    modals.forEach(id => {
-        const modal = document.getElementById(id);
-        if (modal && e.target === modal) {
-            modal.style.display = 'none';
-            toggleBodyScroll(false);
-        }
-    });
+function showEditGuardModal(id, name) {
+    const modal = document.getElementById('editGuardModal');
+    if (modal) {
+        document.getElementById('editGuardId').value = id;
+        document.getElementById('editGuardName').value = name;
+        modal.style.display = 'flex';
+        if (typeof toggleBodyScroll === 'function') toggleBodyScroll(true);
+    }
+}
+
+function hideEditGuardModal() {
+    const modal = document.getElementById('editGuardModal');
+    if (modal) {
+        modal.style.display = 'none';
+        if (typeof toggleBodyScroll === 'function') toggleBodyScroll(false);
+    }
+}
+
+function viewGuardRecords(name) {
+    const modal = document.getElementById('guardModal');
+    const loading = document.getElementById('modalLoading');
+    const content = document.getElementById('modalContent');
+    const title = document.getElementById('modalTitle');
+    const subtitle = document.getElementById('modalSubtitle');
+    const list = document.getElementById('activityList');
+
+    if (!modal) return;
+
+    modal.style.display = 'flex';
+    loading.style.display = 'block';
+    content.classList.add('display-none');
+    title.innerText = name;
+    subtitle.innerText = "Security Personnel";
+    if (typeof toggleBodyScroll === 'function') toggleBodyScroll(true);
+
+    fetch(`index.php?url=osas/guard_ajax&name=${encodeURIComponent(name)}`)
+        .then(response => response.json())
+        .then(data => {
+            loading.style.display = 'none';
+            content.classList.remove('display-none');
+            list.innerHTML = '';
+
+            if (data.records.length > 0) {
+                data.records.forEach(r => {
+                    const item = document.createElement('div');
+                    item.className = 'history-item-minimal';
+                    item.innerHTML = `
+                        <div class="flex-between mb-5">
+                            <span class="fw-600 text-white">${r.student_name}</span>
+                            <span class="fs-0-7 text-white-40">${new Date(r.created_at).toLocaleDateString()}</span>
+                        </div>
+                        <div class="fs-0-85 text-white-60 mb-5">${r.description}</div>
+                        <div class="flex-between align-center">
+                            <span class="badge badge-${r.status.toLowerCase()}">${r.status.replace('_', ' ')}</span>
+                            <span class="fs-0-75 text-mint-green italic">${r.sanction || 'No sanction'}</span>
+                        </div>
+                    `;
+                    list.appendChild(item);
+                });
+            } else {
+                list.innerHTML = '<div class="text-center p-30 text-white-30">No reports recorded by this guard.</div>';
+            }
+        });
+}
+
+function hideGuardModal() {
+    const modal = document.getElementById('guardModal');
+    if (modal) {
+        modal.style.display = 'none';
+        if (typeof toggleBodyScroll === 'function') toggleBodyScroll(false);
+    }
+}
+
+function showAddStudentModal() {
+    const modal = document.getElementById('addStudentModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        if (typeof toggleBodyScroll === 'function') toggleBodyScroll(true);
+    }
+}
+
+function hideAddStudentModal() {
+    const modal = document.getElementById('addStudentModal');
+    if (modal) {
+        modal.style.display = 'none';
+        if (typeof toggleBodyScroll === 'function') toggleBodyScroll(false);
+    }
+}
+
+let currentStudent = null;
+
+function viewStudent(id) {
+    const modal = document.getElementById('studentModal');
+    const loading = document.getElementById('modalLoading');
+    const content = document.getElementById('modalContent');
+
+    if (!modal) return;
+
+    modal.style.display = 'flex';
+    loading.style.display = 'block';
+    content.classList.add('display-none');
+    if (typeof toggleBodyScroll === 'function') toggleBodyScroll(true);
+
+    fetch(`index.php?url=osas/student_ajax&id=${id}`)
+        .then(response => response.json())
+        .then(data => {
+            currentStudent = data.student;
+            loading.style.display = 'none';
+            content.classList.remove('display-none');
+
+            // Populate Info
+            const s = data.student;
+            const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(s.full_name)}&background=1b4332&color=fff&size=150`;
+            document.getElementById('det_photo').src = s.profile_photo && s.profile_photo !== 'default_profile.png' 
+                ? `assets/img/profiles/${s.profile_photo}` 
+                : avatarUrl;
+            document.getElementById('det_name').innerText = s.full_name;
+            document.getElementById('det_id').innerText = s.student_id_number;
+            document.getElementById('det_course').innerText = s.course;
+            document.getElementById('det_year_sec').innerText = `${s.year_level} - ${s.section}`;
+            document.getElementById('det_bio').innerText = s.bio || "No biography provided.";
+
+            // Populate History
+            const historyList = document.getElementById('det_history');
+            historyList.innerHTML = '';
+            if (data.violations.length > 0) {
+                data.violations.forEach(v => {
+                    const item = document.createElement('div');
+                    item.className = 'history-item-minimal';
+                    item.innerHTML = `
+                        <div class="flex-between mb-5">
+                            <span class="fw-600 text-white">${v.violation_type} Violation</span>
+                            <span class="fs-0-7 text-white-40">${new Date(v.created_at).toLocaleDateString()}</span>
+                        </div>
+                        <div class="fs-0-85 text-white-60 mb-5">${v.description}</div>
+                        <div class="flex-between align-center">
+                            <span class="badge badge-${v.status.toLowerCase()}">${v.status.replace('_', ' ')}</span>
+                            <span class="fs-0-75 text-white-30">By: ${v.guard_name}</span>
+                        </div>
+                    `;
+                    historyList.appendChild(item);
+                });
+            } else {
+                historyList.innerHTML = '<div class="text-center p-30 text-white-30">No violation records.</div>';
+            }
+        });
+}
+
+function hideStudentModal() {
+    const modal = document.getElementById('studentModal');
+    if (modal) {
+        modal.style.display = 'none';
+        if (typeof toggleBodyScroll === 'function') toggleBodyScroll(false);
+    }
+}
+
+function showEditStudentModal() {
+    if (!currentStudent) return;
+    const modal = document.getElementById('editStudentModal');
+    if (modal) {
+        document.getElementById('edit_user_id').value = currentStudent.id;
+        document.getElementById('edit_full_name').value = currentStudent.full_name;
+        document.getElementById('edit_student_id').value = currentStudent.student_id_number;
+        document.getElementById('edit_course').value = currentStudent.course;
+        document.getElementById('edit_year_level').value = currentStudent.year_level;
+        document.getElementById('edit_section').value = currentStudent.section;
+        
+        modal.style.display = 'flex';
+        // Keep scroll locked since studentModal is underneath
+    }
+}
+
+function hideEditStudentModal() {
+    const modal = document.getElementById('editStudentModal');
+    if (modal) modal.style.display = 'none';
+}
+
+function confirmDeleteStudent() {
+    if (!currentStudent) return;
+    const modal = document.getElementById('deleteStudentModal');
+    if (modal) {
+        document.getElementById('delete_user_id').value = currentStudent.id;
+        modal.style.display = 'flex';
+    }
+}
+
+function hideDeleteStudentModal() {
+    const modal = document.getElementById('deleteStudentModal');
+    if (modal) modal.style.display = 'none';
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Guard Search
+    const guardSearch = document.getElementById('guardSearch');
+    if (guardSearch) {
+        guardSearch.addEventListener('input', function() {
+            const query = this.value.toLowerCase();
+            const cards = document.querySelectorAll('.guard-card');
+            let found = 0;
+            cards.forEach(card => {
+                const name = card.querySelector('h3').innerText.toLowerCase();
+                if (name.includes(query)) {
+                    card.style.display = 'flex';
+                    found++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+            document.getElementById('noGuardResults').style.display = found === 0 ? 'block' : 'none';
+        });
+    }
+
+    // Student Search
+    const studentSearch = document.getElementById('studentSearch');
+    if (studentSearch) {
+        studentSearch.addEventListener('input', function() {
+            const query = this.value.toLowerCase();
+            const cards = document.querySelectorAll('.student-mini-card');
+            const sections = document.querySelectorAll('.year-section');
+            let totalFound = 0;
+
+            sections.forEach(section => {
+                let sectionFound = 0;
+                const sectionCards = section.querySelectorAll('.student-mini-card');
+                sectionCards.forEach(card => {
+                    const name = card.querySelector('h4').innerText.toLowerCase();
+                    const idNum = card.querySelector('p').innerText.toLowerCase();
+                    if (name.includes(query) || idNum.includes(query)) {
+                        card.style.display = 'flex';
+                        sectionFound++;
+                        totalFound++;
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+                section.style.display = sectionFound > 0 ? 'block' : 'none';
+            });
+            document.getElementById('noResults').style.display = totalFound === 0 ? 'block' : 'none';
+        });
+    }
 });

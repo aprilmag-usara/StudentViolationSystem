@@ -14,7 +14,7 @@
     <div class="auth-page-container">
         <div class="auth-card max-w-450">
             <div class="logo-container flex-center mb-20">
-                <img src="assets/img/logos2.png" alt="SVS Logo" class="logo-img">
+                <img src="assets/img/logo.png" alt="SVS Logo" class="logo-img">
             </div>
             
             <h2>Welcome Back</h2>
@@ -36,12 +36,11 @@
                 </div>
 
                 <button type="submit" name="login" class="btn-auth">Sign In</button>
-                
-                <p class="mt-15"><a href="index.php?url=home/index">← Back to Home</a></p>
             </form>
 
             <div class="auth-footer">
-                Don't have an account? <a href="index.php?url=auth/signup">Register here</a>
+                <p>Don't have an account? <a href="index.php?url=auth/signup">Register here</a></p>
+                <p class="mt-15"><a href="index.php?url=home/index">← Back to Home</a></p>
             </div>
         </div>
     </div>

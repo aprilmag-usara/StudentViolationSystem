@@ -1,3 +1,11 @@
+<?php 
+/** @var array $studentInfo */
+/** @var string $message */
+/** @var array $stats */
+$studentInfo = $studentInfo ?? [];
+$message = $message ?? '';
+$stats = $stats ?? [];
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,7 +15,9 @@
     <link rel="stylesheet" href="assets/css/navbar.css">
     <link rel="stylesheet" href="assets/css/dashboard.css">
     <link rel="stylesheet" href="assets/css/student.css">
+    <link rel="stylesheet" href="assets/css/student_profile_new.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
     <div class="dashboard-bg-overlay"></div>
@@ -69,73 +79,116 @@
     </form>
 
     <main class="main-dashboard">
-        <div class="welcome-section text-center">
-            <h1>My Profile</h1>
-            <p>Manage your account settings and your activity statistics.</p>
+        <div class="welcome-section text-center mb-40">
+            <h1 class="glow-text">Account Settings</h1>
+            <p class="subtitle-text">Manage your digital identity and security credentials.</p>
         </div>
 
-        <?php if (!empty($message)): 
-            $isError = strpos(strtolower($message), 'error') !== false || strpos(strtolower($message), 'incorrect') !== false || strpos(strtolower($message), 'match') !== false;
-        ?>
-            <div class="toast-container" id="toast">
-                <div class="toast-message <?php echo $isError ? 'error' : ''; ?>">
-                    <?php echo $message; ?>
+        <div class="profile-layout max-w-1000 mx-auto">
+            <!-- Sidebar: Photo, QR & Actions -->
+            <aside class="profile-sidebar-card">
+                <div class="profile-photo-container mx-auto mb-40" onclick="document.getElementById('photoInput').click()" title="Change Profile Photo">
+                    <?php 
+                        $photoPath = !empty($studentInfo['profile_photo']) && $studentInfo['profile_photo'] !== 'default_profile.png' 
+                            ? 'assets/img/profiles/' . $studentInfo['profile_photo'] 
+                            : '';
+                        $full_name = $studentInfo['full_name'] ?? 'User';
+                        $avatar_url = "https://ui-avatars.com/api/?name=" . urlencode($full_name) . "&background=1b4332&color=fff&size=150";
+                    ?>
+                    <img src="<?php echo $photoPath; ?>" alt="Profile" class="profile-photo" onerror="this.src='<?php echo $avatar_url; ?>'">
+                    <div class="photo-edit-btn">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                    </div>
                 </div>
-            </div>
-        <?php endif; ?>
 
-        <div class="max-w-800 mx-auto">
-            <!-- Profile Info Card -->
-            <div class="glass-card text-center">
-                <div class="profile-header">
-                    <div class="profile-photo-container" onclick="document.getElementById('photoInput').click()" title="Click to upload photo">
-                        <?php 
-                            $photoPath = !empty($studentInfo['profile_photo']) && $studentInfo['profile_photo'] !== 'default_profile.png' 
-                                ? 'assets/img/profiles/' . $studentInfo['profile_photo'] 
-                                : '';
-                            $full_name = $studentInfo['full_name'] ?? 'User';
-                            $avatar_url = "https://ui-avatars.com/api/?name=" . urlencode($full_name) . "&background=1b4332&color=fff&size=150";
-                        ?>
-                        <img src="<?php echo $photoPath; ?>" alt="Profile" class="profile-photo" onerror="this.src='<?php echo $avatar_url; ?>'">
-                        <div class="photo-edit-btn">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                <div id="qrcode" class="qr-card-modern mb-25"></div>
+                <p class="text-white-40 fs-0-75 mb-30">Scan to verify digital student ID</p>
+
+                <div class="profile-actions-modern">
+                    <button onclick="showEditModal()" class="btn-profile-action btn-edit-p">Edit Profile Details</button>
+                    <button onclick="showPasswordModal()" class="btn-profile-action btn-pass-p">Change Security Password</button>
+                </div>
+            </aside>
+
+            <!-- Main Content: Stats & Personal Info -->
+            <div class="profile-main-content">
+                <!-- Statistics Card -->
+                <div class="profile-data-card">
+                    <h3 class="card-title-modern">Disciplinary Overview</h3>
+                    <div class="stats-grid-modern">
+                        <div class="stat-box-modern total">
+                            <span class="val"><?php echo $stats['total'] ?? 0; ?></span>
+                            <span class="lab">Total Cases</span>
+                        </div>
+                        <div class="stat-box-modern pending">
+                            <span class="val"><?php echo $stats['pending'] ?? 0; ?></span>
+                            <span class="lab">Active Cases</span>
+                        </div>
+                        <div class="stat-box-modern completed">
+                            <span class="val"><?php echo $stats['completed'] ?? 0; ?></span>
+                            <span class="lab">Settled Cases</span>
                         </div>
                     </div>
-                    
-                    <div class="mt-20">
-                        <h2 class="fs-1-8 mb-5"><?php echo htmlspecialchars($studentInfo['username'] ?? ''); ?></h2>
-                        <p class="fs-1-1 text-white-80 fw-300"><?php echo htmlspecialchars($full_name); ?></p>
-                        <p class="text-white-50 fs-0-9 mt-5">ID Number: <?php echo htmlspecialchars($studentInfo['student_id_number'] ?? 'N/A'); ?></p>
+                </div>
+
+                <!-- Personal Information Card -->
+                <div class="profile-data-card">
+                    <h3 class="card-title-modern">Personal Information</h3>
+                    <div class="info-grid-modern">
+                        <div class="info-block">
+                            <span class="label">Full Name</span>
+                            <span class="value"><?php echo htmlspecialchars($full_name); ?></span>
+                        </div>
+                        <div class="info-block">
+                            <span class="label">Student ID</span>
+                            <span class="value"><?php echo htmlspecialchars($studentInfo['student_id_number'] ?? 'N/A'); ?></span>
+                        </div>
+                        <div class="info-block">
+                            <span class="label">Course</span>
+                            <span class="value"><?php echo htmlspecialchars($studentInfo['course'] ?? 'N/A'); ?></span>
+                        </div>
+                        <div class="info-block">
+                            <span class="label">Year & Section</span>
+                            <span class="value"><?php echo htmlspecialchars(($studentInfo['year_level'] ?? 'N/A') . ' - ' . ($studentInfo['section'] ?? 'N/A')); ?></span>
+                        </div>
                     </div>
 
                     <?php if(!empty($studentInfo['bio'])): ?>
-                        <p class="profile-bio-text">
+                        <div class="profile-bio-modern mt-30">
                             "<?php echo htmlspecialchars($studentInfo['bio']); ?>"
-                        </p>
+                        </div>
                     <?php endif; ?>
-
-                    <div class="flex gap-15 justify-center mt-30">
-                        <button onclick="showEditModal()" class="modal-btn modal-btn-yes px-40">Edit Profile</button>
-                        <button onclick="showPasswordModal()" class="modal-btn modal-btn-no px-40">Change Password</button>
-                    </div>
-                </div>
-
-                <div class="stats-grid border-top-glass pt-30 mt-40">
-                    <div class="stat-item">
-                        <span class="stat-value"><?php echo $stats['total'] ?? 0; ?></span>
-                        <span class="stat-label">Total Violations</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-value text-error"><?php echo $stats['pending'] ?? 0; ?></span>
-                        <span class="stat-label">Active Sanctions</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-value text-sage-green"><?php echo $stats['completed'] ?? 0; ?></span>
-                        <span class="stat-label">Completed</span>
-                    </div>
                 </div>
             </div>
         </div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const qrContainer = document.getElementById("qrcode");
+                const userId = "<?php echo $studentInfo['id'] ?? $_SESSION['user_id'] ?? ''; ?>";
+                
+                if (!userId) {
+                    qrContainer.style.background = "rgba(231, 76, 60, 0.1)";
+                    qrContainer.innerHTML = "<p style='color: #e74c3c; font-size: 0.8rem;'>Error: Profile ID not found</p>";
+                    return;
+                }
+
+                const protocol = window.location.protocol;
+                const host = window.location.host;
+                const pathParts = window.location.pathname.split('/');
+                const basePath = pathParts.slice(0, pathParts.indexOf('public') + 1).join('/');
+                const qrData = `${protocol}//${host}${basePath}/index.php?url=home/view_user&id=${userId}`;
+                
+                new QRCode(qrContainer, {
+                    text: qrData,
+                    width: 140,
+                    height: 140,
+                    colorDark : "#1b4332",
+                    colorLight : "#ffffff",
+                    correctLevel : QRCode.CorrectLevel.H
+                });
+            });
+        </script>
     </main>
 
     <script src="assets/js/student.js"></script>

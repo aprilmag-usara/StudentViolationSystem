@@ -1,3 +1,15 @@
+<?php 
+/** @var string $message */
+/** @var mysqli_result $activeViolations */
+/** @var mysqli_result $completedViolations */
+/** @var int $unreadCount */
+/** @var array $notifications */
+$message = $message ?? '';
+$activeViolations = $activeViolations ?? null;
+$completedViolations = $completedViolations ?? null;
+$unreadCount = $unreadCount ?? 0;
+$notifications = $notifications ?? [];
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -12,14 +24,12 @@
 <body>
     <div class="dashboard-bg-overlay"></div>
 
-    <!-- Navigation & Modals -->
     <?php include __DIR__ . '/../navbar.php'; ?>
 
-    <!-- Main Content -->
     <main class="main-dashboard">
-        <div class="welcome-section">
-            <h1>Violation Management</h1>
-            <p>Full administrative control over all student records.</p>
+        <div class="welcome-section mb-40">
+            <h1 class="glow-text">Violation Management</h1>
+            <p class="subtitle-text">Full administrative control over all student records.</p>
         </div>
 
         <script>
@@ -32,122 +42,126 @@
             });
         </script>
 
-            <div class="glass-card">
-                <div class="section-header">
-                    <h2>Active Violations</h2>
-                </div>
+        <!-- Active Violations Section -->
+        <h2 class="record-section-title">Active Violations</h2>
+        
+        <?php if ($activeViolations && $activeViolations->num_rows > 0): ?>
+            <div class="records-container">
+                <?php while ($v = $activeViolations->fetch_assoc()): ?>
+                <div class="record-item-card" id="violation-<?php echo $v['id']; ?>">
+                    <!-- Student Info -->
+                    <div>
+                        <div class="record-label">Student</div>
+                        <div class="fw-600 fs-1-1 text-white"><?php echo htmlspecialchars($v['student_name']); ?></div>
+                        <div class="fs-0-8 text-white-40 mt-2"><?php echo htmlspecialchars($v['course']); ?></div>
+                    </div>
 
-                <table class="records-table">
-                    <thead>
-                        <tr>
-                            <th>Student</th>
-                            <th>ID Number</th>
-                            <th>Violation</th>
-                            <th>Status</th>
-                            <th>Sanction</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php if ($activeViolations && $activeViolations->num_rows > 0): ?>
-                            <?php while ($v = $activeViolations->fetch_assoc()): ?>
-                            <tr id="violation-<?php echo $v['id']; ?>">
-                                <td>
-                                    <div class="fw-600"><?php echo htmlspecialchars($v['student_name']); ?></div>
-                                    <div class="fs-0-7 text-white-50"><?php echo htmlspecialchars($v['course']); ?></div>
-                                </td>
-                                <td class="font-monospace"><?php echo htmlspecialchars($v['student_id_number']); ?></td>
-                                <td>
-                                    <span class="status-dot <?php echo strtolower($v['violation_type']); ?>"></span>
-                                    <?php echo $v['violation_type']; ?>
-                                </td>
-                                <td>
-                                    <span class="badge badge-<?php echo strtolower($v['status']); ?>">
-                                        <?php echo ucfirst(str_replace('_', ' ', $v['status'])); ?>
-                                    </span>
-                                </td>
-                                <td class="font-italic text-mint-green">
-                                    <?php echo $v['sanction'] ?: '<span class="opacity-30">None</span>'; ?>
-                                </td>
-                                <td>
-                                    <div class="flex gap-10">
-                                        <!-- Edit first -->
-                                        <button onclick='showViolationEditModal(<?php echo json_encode($v); ?>)' class="modal-btn modal-btn-yes px-15 fs-0-7">Edit</button>
+                    <!-- ID Number -->
+                    <div>
+                        <div class="record-label">ID Number</div>
+                        <div class="font-monospace text-sage-green fw-600"><?php echo htmlspecialchars($v['student_id_number']); ?></div>
+                    </div>
 
-                                        <!-- Actions (Complete or Receive) in the middle -->
-                                        <?php if ($v['status'] === 'pending'): ?>
-                                            <form method="POST" class="display-inline">
-                                                <input type="hidden" name="violation_id" value="<?php echo $v['id']; ?>">
-                                                <input type="hidden" name="student_name" value="<?php echo htmlspecialchars($v['student_name']); ?>">
-                                                <button type="submit" name="receive_violation" class="modal-btn btn-receive px-15 fs-0-7">Receive</button>
-                                            </form>
-                                        <?php elseif ($v['status'] !== 'completed'): ?>
-                                            <form method="POST" class="display-inline">
-                                                <input type="hidden" name="violation_id" value="<?php echo $v['id']; ?>">
-                                                <button type="submit" name="complete_sanction" class="modal-btn btn-complete px-15 fs-0-7">Complete</button>
-                                            </form>
-                                        <?php endif; ?>
-                                        
-                                        <!-- Delete last -->
-                                        <form method="POST" class="display-inline" onsubmit="return confirm('Are you sure you want to delete this record?');">
-                                            <input type="hidden" name="violation_id" value="<?php echo $v['id']; ?>">
-                                            <button type="submit" name="delete_violation" class="modal-btn btn-delete-record px-15 fs-0-7">Delete</button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                            <?php endwhile; ?>
-                        </tbody>
-                    </table>
-                <?php else: ?>
-                    <div class="text-center p-40 opacity-50">No active violations.</div>
-                <?php endif; ?>
-            </div>
+                    <!-- Violation Type -->
+                    <div>
+                        <div class="record-label">Violation</div>
+                        <div class="flex align-center gap-8">
+                            <span class="status-dot <?php echo strtolower($v['violation_type']); ?>"></span>
+                            <span class="text-white-70"><?php echo $v['violation_type']; ?></span>
+                        </div>
+                    </div>
 
-            <div class="glass-card mt-40 opacity-80">
-                <div class="section-header">
-                    <h2 class="text-white-60">Completed Sanctions History</h2>
-                </div>
-                <table class="records-table">
-                    <thead>
-                        <tr>
-                            <th>Student</th>
-                            <th>ID Number</th>
-                            <th>Type</th>
-                            <th>Violation Date</th>
-                            <th>Sanction Served</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php if ($completedViolations && $completedViolations->num_rows > 0): ?>
-                            <?php while ($v = $completedViolations->fetch_assoc()): ?>
-                            <tr class="bg-white-02">
-                                <td>
-                                    <div class="fw-500 text-white-70"><?php echo htmlspecialchars($v['student_name']); ?></div>
-                                    <div class="fs-0-7 text-white-30"><?php echo htmlspecialchars($v['course']); ?></div>
-                                </td>
-                                <td class="font-monospace text-white-50"><?php echo htmlspecialchars($v['student_id_number']); ?></td>
-                                <td>
-                                    <span class="fs-0-7 text-white-40 border-glass px-8 py-2 border-radius-5">
-                                        <?php echo $v['violation_type']; ?>
-                                    </span>
-                                </td>
-                                <td class="fs-0-8 text-white-40">
-                                    <?php echo date('M d, Y', strtotime($v['updated_at'])); ?>
-                                </td>
-                                <td class="font-italic text-sage-green opacity-60">
-                                    <?php echo htmlspecialchars($v['sanction']); ?>
-                                </td>
-                            </tr>
-                            <?php endwhile; ?>
-                        <?php else: ?>
-                            <tr><td colspan="5" class="text-center p-40 opacity-30">No history found.</td></tr>
+                    <!-- Status -->
+                    <div>
+                        <div class="record-label">Status</div>
+                        <span class="badge badge-<?php echo strtolower($v['status']); ?>">
+                            <?php echo ucfirst(str_replace('_', ' ', $v['status'])); ?>
+                        </span>
+                    </div>
+
+                    <!-- Sanction -->
+                    <div>
+                        <div class="record-label">Sanction</div>
+                        <div class="font-italic text-mint-green fs-0-9">
+                            <?php echo $v['sanction'] ?: '<span class="opacity-20">None</span>'; ?>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="action-btn-group">
+                        <button onclick='showViolationEditModal(<?php echo json_encode($v); ?>)' class="btn-record-action btn-edit-record">
+                            Edit Record
+                        </button>
+
+                        <?php if ($v['status'] === 'pending'): ?>
+                            <form method="POST" class="w-100">
+                                <input type="hidden" name="violation_id" value="<?php echo $v['id']; ?>">
+                                <input type="hidden" name="student_name" value="<?php echo htmlspecialchars($v['student_name']); ?>">
+                                <button type="submit" name="receive_violation" class="btn-record-action btn-complete-record">Receive</button>
+                            </form>
+                        <?php elseif ($v['status'] !== 'completed'): ?>
+                            <form method="POST" class="w-100">
+                                <input type="hidden" name="violation_id" value="<?php echo $v['id']; ?>">
+                                <button type="submit" name="complete_sanction" class="btn-record-action btn-complete-record">Complete</button>
+                            </form>
                         <?php endif; ?>
-                    </tbody>
-                </table>
+                        
+                        <form method="POST" class="w-100" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                            <input type="hidden" name="violation_id" value="<?php echo $v['id']; ?>">
+                            <button type="submit" name="delete_violation" class="btn-record-action btn-delete-record-styled">Delete</button>
+                        </form>
+                    </div>
+                </div>
+                <?php endwhile; ?>
             </div>
-        </main>
-    </div>
+        <?php else: ?>
+            <div class="glass-card text-center p-60">
+                <p class="text-white-30">No active violations found in the system.</p>
+            </div>
+        <?php endif; ?>
+
+        <!-- History Section -->
+        <h2 class="record-section-title mt-60 opacity-60">Completed History</h2>
+        <div class="glass-card opacity-80">
+            <table class="records-table">
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>ID Number</th>
+                        <th>Type</th>
+                        <th>Violation Date</th>
+                        <th>Sanction Served</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if ($completedViolations && $completedViolations->num_rows > 0): ?>
+                        <?php while ($v = $completedViolations->fetch_assoc()): ?>
+                        <tr class="bg-white-02">
+                            <td>
+                                <div class="fw-500 text-white-70"><?php echo htmlspecialchars($v['student_name']); ?></div>
+                                <div class="fs-0-7 text-white-30"><?php echo htmlspecialchars($v['course']); ?></div>
+                            </td>
+                            <td class="font-monospace text-white-50"><?php echo htmlspecialchars($v['student_id_number']); ?></td>
+                            <td>
+                                <span class="fs-0-7 text-white-40 border-glass px-8 py-2 border-radius-5">
+                                    <?php echo $v['violation_type']; ?>
+                                </span>
+                            </td>
+                            <td class="fs-0-8 text-white-40">
+                                <?php echo date('M d, Y', strtotime($v['updated_at'])); ?>
+                            </td>
+                            <td class="font-italic text-sage-green opacity-60">
+                                <?php echo htmlspecialchars($v['sanction']); ?>
+                            </td>
+                        </tr>
+                        <?php endwhile; ?>
+                    <?php else: ?>
+                        <tr><td colspan="5" class="text-center p-40 opacity-30">No history found.</td></tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+    </main>
 
     <!-- Edit Modal -->
     <div id="editModal" class="modal-overlay">
@@ -205,18 +219,6 @@
                     <button type="submit" name="update_violation" class="modal-btn modal-btn-yes">Save & Notify Student</button>
                 </div>
             </form>
-        </div>
-    </div>
-
-    <!-- Logout Modal -->
-    <div id="logoutModal" class="modal-overlay">
-        <div class="modal-content">
-            <span class="modal-close" onclick="hideLogoutModal()">&times;</span>
-            <h2>Logging Out?</h2>
-            <div class="modal-buttons">
-                <button class="modal-btn modal-btn-no" onclick="hideLogoutModal()">Cancel</button>
-                <a href="index.php?url=auth/logout" class="modal-btn modal-btn-yes no-underline">Yes, logout</a>
-            </div>
         </div>
     </div>
 

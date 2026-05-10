@@ -176,7 +176,7 @@ class StudentController extends BaseController {
         $stmt = $this->db->prepare("SELECT 
             COUNT(*) as total,
             COALESCE(SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END), 0) as completed,
-            COALESCE(SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END), 0) as pending
+            COALESCE(SUM(CASE WHEN status NOT IN ('completed', 'dropped') THEN 1 ELSE 0 END), 0) as pending
             FROM violations WHERE student_user_id = ?");
         $stmt->bind_param("i", $userId);
         $stmt->execute();

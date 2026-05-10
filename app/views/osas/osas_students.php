@@ -1,3 +1,13 @@
+<?php 
+/** @var string $message */
+/** @var array $studentsByYear */
+/** @var int $unreadCount */
+/** @var array $notifications */
+$message = $message ?? '';
+$studentsByYear = $studentsByYear ?? [];
+$unreadCount = $unreadCount ?? 0;
+$notifications = $notifications ?? [];
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -12,28 +22,28 @@
 <body>
     <div class="dashboard-bg-overlay"></div>
 
-    <!-- Navigation & Modals -->
     <?php include __DIR__ . '/../navbar.php'; ?>
 
-    <!-- Main Content -->
     <main class="main-dashboard">
-        <div class="welcome-section">
-            <div class="flex-between align-center mb-10">
+        <div class="welcome-section mb-40">
+            <div class="flex-between align-center">
                 <div>
-                    <h1>Student Management</h1>
-                    <p>View and manage all registered students in the system.</p>
+                    <h1 class="glow-text mb-5">Student Management</h1>
+                    <p class="subtitle-text">View and manage all registered students in the system.</p>
                 </div>
-                <div class="flex-row align-center gap-20">
-                    <button class="btn-primary-enhanced" onclick="showAddStudentModal()">
-                        <span>+</span> Add New Student
-                    </button>
-                    <div class="search-container max-w-400">
-                        <span class="fs-1-2 opacity-50 mr-10"><img src="assets/img/icons/search.svg" alt="Magnifying Glass icon" width="24" height="24"></span>
-                        <input type="text" id="studentSearch" placeholder="Search by name or ID number..." class="search-input-clear">
-                        <div id="searchDropdown" class="search-results-dropdown"></div>
-                    </div>
-                </div>
+                <button class="btn-primary-small" onclick="showAddStudentModal()">
+                    <span>+</span> Add New Student
+                </button>
             </div>
+        </div>
+
+        <div class="search-bar-standalone mb-60">
+            <div class="search-container-full">
+                <span class="search-icon-fixed"><img src="assets/img/icons/search.svg" alt="Search" width="20" height="20"></span>
+                <input type="text" id="studentSearch" placeholder="Search by student name or ID number..." class="search-input-modern">
+                <div id="searchDropdown" class="search-results-dropdown"></div>
+            </div>
+        </div>
             
             <script>
                 document.addEventListener('DOMContentLoaded', () => {
@@ -256,18 +266,6 @@
                     <button type="submit" class="modal-btn modal-btn-yes">Yes, Delete Account</button>
                 </div>
             </form>
-        </div>
-    </div>
-
-    <!-- Logout Modal -->
-    <div id="logoutModal" class="modal-overlay">
-        <div class="modal-content">
-            <span class="modal-close" onclick="hideLogoutModal()">&times;</span>
-            <h2>Logging Out?</h2>
-            <div class="modal-buttons">
-                <button class="modal-btn modal-btn-no" onclick="hideLogoutModal()">Cancel</button>
-                <a href="index.php?url=auth/logout" class="modal-btn modal-btn-yes" style="text-decoration: none;">Yes, logout</a>
-            </div>
         </div>
     </div>
 
