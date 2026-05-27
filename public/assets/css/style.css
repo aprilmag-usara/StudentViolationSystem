@@ -65,7 +65,7 @@ header {
 }
 
 .logo-img {
-    height: 60px;
+    height: 150px;
     width: auto;
     filter: drop-shadow(0 0 10px rgba(255,255,255,0.2));
 }
@@ -223,7 +223,7 @@ h1 {
 }
 
 .auth-card .logo-img {
-    height: 60px;
+    height: 120px;
     margin-bottom: 25px;
 }
 

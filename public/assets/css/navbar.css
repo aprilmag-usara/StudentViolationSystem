@@ -21,6 +21,10 @@
     margin-bottom: 30px;
 }
 
+.sidebar .logo-text {
+    font-size: 0.9rem;
+}
+
 .sidebar-nav {
     flex: 1;
     padding: 0 10px;
@@ -34,7 +38,7 @@
     color: rgba(255, 255, 255, 0.6);
     text-decoration: none;
     border-radius: 10px;
-    margin-bottom: 4px;
+    margin-bottom: 12px;
     font-size: 0.85rem;
     font-weight: 500;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -74,7 +78,7 @@
 }
 
 .sidebar-footer {
-    padding: 15px 12px;
+    padding: 5px 12px 15px 12px;
     border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
@@ -125,7 +129,7 @@ body:has(.sidebar) .main-dashboard {
 }
 
 .logo-img {
-    height: 40px;
+    height: 70px;
     width: auto;
 }
 
