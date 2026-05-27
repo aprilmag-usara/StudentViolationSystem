@@ -34,7 +34,7 @@ class StudentController extends BaseController {
         }
 
         $stats = $this->getViolationStats($userId);
-        $violations = $this->violationModel->findByStudent($userId, 5);
+        $violations = $this->violationModel->findSanctionedByStudent($userId, 5);
         
         $navData = $this->getNavData($userId);
 
@@ -50,7 +50,49 @@ class StudentController extends BaseController {
         if (!isset($_SESSION['user_id'])) return;
         $role = $_SESSION['role'] ?? null;
         $this->userModel->markNotificationsAsRead($_SESSION['user_id'], $role);
-        header("Location: index.php?url=student/dashboard");
+        header("Location: index.php?url=student/notifications");
+    }
+
+    public function notifications() {
+        if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'STUDENT') {
+            header("Location: index.php");
+            exit();
+        }
+
+        $userId = $_SESSION['user_id'];
+        $message = "";
+
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            if (isset($_POST['delete_notification'])) {
+                $notifId = $_POST['notification_id'];
+                $stmt = $this->db->prepare("DELETE FROM notifications WHERE id = ? AND user_id = ?");
+                $stmt->bind_param("ii", $notifId, $userId);
+                if ($stmt->execute()) {
+                    $_SESSION['notification_message'] = "Notification deleted.";
+                    header("Location: index.php?url=student/notifications");
+                    exit();
+                }
+            }
+        }
+
+        $message = $_SESSION['notification_message'] ?? '';
+        unset($_SESSION['notification_message']);
+
+        $navData = $this->getNavData($userId);
+        $notifResult = $this->userModel->getNotifications($userId, 50, $_SESSION['role']);
+        
+        $allNotifications = [];
+        if ($notifResult) {
+            while ($row = $notifResult->fetch_assoc()) {
+                $allNotifications[] = $row;
+            }
+        }
+
+        echo $this->render_view('student/student_notifications', array_merge($navData, [
+            'notifications' => $allNotifications,
+            'message' => $message,
+            'active' => 'notifications'
+        ]));
     }
 
     public function records() {
@@ -59,14 +101,25 @@ class StudentController extends BaseController {
             exit();
         }
         $userId = $_SESSION['user_id'];
+        
+        // Handle mark as read from URL parameter
+        if (isset($_GET['mark_read'])) {
+            $notifId = $_GET['mark_read'];
+            $stmt = $this->db->prepare("UPDATE notifications SET is_read = TRUE WHERE id = ? AND user_id = ?");
+            $stmt->bind_param("ii", $notifId, $userId);
+            $stmt->execute();
+        }
+        
         $studentInfo = $this->getStudentInfo($userId);
-        $violations = $this->getStudentViolations($userId);
+        $activeViolations = $this->violationModel->findActiveSanctionedByStudent($userId);
+        $completedViolations = $this->violationModel->findCompletedSanctionedByStudent($userId);
         
         $navData = $this->getNavData($userId);
 
         echo $this->render_view('student/student_records', array_merge($navData, [
             'studentInfo' => $studentInfo,
-            'violations' => $violations,
+            'activeViolations' => $activeViolations,
+            'completedViolations' => $completedViolations,
             'active' => 'records'
         ]));
     }
@@ -83,10 +136,16 @@ class StudentController extends BaseController {
         // Handle Profile Updates
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             if (isset($_POST['update_profile'])) {
-                $username = $_POST['username'];
-                $bio = $_POST['bio'];
-                if ($this->userModel->updateProfile($userId, $username, $bio)) {
-                    $_SESSION['username'] = $username;
+                $data = [
+                    'username' => $_POST['username'],
+                    'full_name' => $_POST['full_name'],
+                    'bio' => $_POST['bio'],
+                    'course' => $_POST['course'],
+                    'year_level' => $_POST['year_level'],
+                    'section' => $_POST['section']
+                ];
+                if ($this->userModel->updateProfile($userId, $data)) {
+                    $_SESSION['username'] = $data['username'];
                     $message = "Profile updated successfully!";
                 } else {
                     $message = "Error updating profile.";
@@ -175,7 +234,7 @@ class StudentController extends BaseController {
     public function getViolationStats($userId) {
         $stmt = $this->db->prepare("SELECT 
             COUNT(*) as total,
-            COALESCE(SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END), 0) as completed,
+            COALESCE(SUM(CASE WHEN status IN ('completed', 'dropped') THEN 1 ELSE 0 END), 0) as completed,
             COALESCE(SUM(CASE WHEN status NOT IN ('completed', 'dropped') THEN 1 ELSE 0 END), 0) as pending
             FROM violations WHERE student_user_id = ?");
         $stmt->bind_param("i", $userId);

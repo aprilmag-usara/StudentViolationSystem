@@ -1,6 +1,8 @@
 <?php 
-/** @var mysqli_result $violations */
-$violations = $violations ?? null;
+/** @var mysqli_result $activeViolations */
+/** @var mysqli_result $completedViolations */
+$activeViolations = $activeViolations ?? null;
+$completedViolations = $completedViolations ?? null;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -25,13 +27,15 @@ $violations = $violations ?? null;
             <p class="text-white-60">A complete list of your past and present violation records recorded by CHMSU Security.</p>
         </div>
 
-        <div class="glass-card overflow-hidden">
-            <div class="card-header-styled">
-                <h3 class="m-0 fs-1-2 fw-600">Disciplinary Records</h3>
-            </div>
-            
-            <div class="p-30">
-                <?php if ($violations->num_rows > 0): ?>
+        <!-- Active Violations Section -->
+        <h2 class="record-section-title">Active Violations</h2>
+        
+        <?php if ($activeViolations && $activeViolations->num_rows > 0): ?>
+            <div class="glass-card overflow-hidden mb-40">
+                <div class="card-header-styled">
+                    <h3 class="m-0 fs-1-2 fw-600">Active Disciplinary Records</h3>
+                </div>
+                <div class="p-30">
                     <div class="table-responsive">
                         <table class="records-table-modern">
                             <thead>
@@ -45,9 +49,7 @@ $violations = $violations ?? null;
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php 
-                                $violations->data_seek(0); 
-                                while ($row = $violations->fetch_assoc()): 
+                                <?php while ($row = $activeViolations->fetch_assoc()): 
                                     $vTypeClass = strtolower($row['violation_type']);
                                     $statusClass = strtolower($row['status']);
                                 ?>
@@ -68,6 +70,75 @@ $violations = $violations ?? null;
                                     </td>
                                     <td class="fs-0-9 text-white-70">
                                         <i class="fas fa-user-shield mr-5 text-sage-green fs-0-8"></i>
+                                        <?php echo htmlspecialchars($row['guard_name'] ?: 'System'); ?>
+                                    </td>
+                                    <td>
+                                        <span class="status-pill-modern <?php echo $statusClass; ?>">
+                                            <?php echo ucfirst(str_replace('_', ' ', $row['status'])); ?>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <button class="btn-details-mini" onclick='showViolationDetails(<?php echo json_encode($row); ?>)'>
+                                            Details
+                                        </button>
+                                    </td>
+                                </tr>
+                                <?php endwhile; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        <?php else: ?>
+            <div class="glass-card text-center py-60 mb-40">
+                <h2 class="text-mint-green mb-10">No Active Violations!</h2>
+                <p class="text-white-50 fw-300 fs-1-1">You don't have any active violation records right now.</p>
+            </div>
+        <?php endif; ?>
+
+        <!-- Completed History Section -->
+        <h2 class="record-section-title mt-60 opacity-60">Completed History</h2>
+        
+        <?php if ($completedViolations && $completedViolations->num_rows > 0): ?>
+            <div class="glass-card overflow-hidden opacity-80">
+                <div class="card-header-styled">
+                    <h3 class="m-0 fs-1-2 fw-600">Past Records</h3>
+                </div>
+                <div class="p-30">
+                    <div class="table-responsive">
+                        <table class="records-table-modern">
+                            <thead>
+                                <tr>
+                                    <th>Violation Description</th>
+                                    <th>Type</th>
+                                    <th>Date & Time</th>
+                                    <th>Guard in Charge</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php while ($row = $completedViolations->fetch_assoc()): 
+                                    $vTypeClass = strtolower($row['violation_type']);
+                                    $statusClass = strtolower($row['status']);
+                                ?>
+                                <tr class="bg-white-02">
+                                    <td class="fw-500 text-white-70 min-w-200">
+                                        <?php echo htmlspecialchars($row['description']); ?>
+                                    </td>
+                                    <td>
+                                        <span class="v-type-badge <?php echo $vTypeClass; ?>">
+                                            <?php echo $row['violation_type']; ?>
+                                        </span>
+                                    </td>
+                                    <td class="fs-0-85 text-white-40">
+                                        <div class="text-white-60 fw-500 mb-3">
+                                            <?php echo date('M d, Y', strtotime($row['violation_time'])); ?>
+                                        </div>
+                                        <?php echo date('h:i A', strtotime($row['violation_time'])); ?>
+                                    </td>
+                                    <td class="fs-0-9 text-white-50">
+                                        <i class="fas fa-user-shield mr-5 text-sage-green fs-0-8 opacity-60"></i>
                                         <?php echo htmlspecialchars($row['recorded_by_guard_name'] ?: 'System'); ?>
                                     </td>
                                     <td>
@@ -85,18 +156,16 @@ $violations = $violations ?? null;
                             </tbody>
                         </table>
                     </div>
-                <?php else: ?>
-                    <div class="text-center py-60">
-                       
-                        <h2 class="text-mint-green mb-10">Clean Record!</h2>
-                        <p class="text-white-50 fw-300 fs-1-1">You don't have any violation records yet.</p>
-                    </div>
-                <?php endif; ?>
+                </div>
             </div>
-        </div>
+        <?php else: ?>
+            <div class="glass-card opacity-80 text-center py-60">
+                <p class="text-white-30 fw-300 fs-1-1">No completed history found.</p>
+            </div>
+        <?php endif; ?>
     </main>
 
-    <!-- Violation Detail Modal (Same as dashboard) -->
+    <!-- Violation Detail Modal -->
     <div id="violationModal" class="modal-overlay">
         <div class="modal-content max-w-600">
             <span class="modal-close" onclick="hideViolationModal()">&times;</span>
@@ -160,7 +229,7 @@ $violations = $violations ?? null;
                 month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit'
             });
             
-            guard.textContent = v.recorded_by_guard_name || 'System Recorded';
+            guard.textContent = v.guard_name || 'System Recorded';
             sanction.textContent = v.sanction || 'Pending Review by OSAS';
             
             status.textContent = v.status.charAt(0).toUpperCase() + v.status.slice(1).replace('_', ' ');

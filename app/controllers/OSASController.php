@@ -208,6 +208,14 @@ class OSASController extends BaseController {
         $userId = $_SESSION['user_id'];
         $message = "";
 
+        // Handle mark as read from URL parameter
+        if (isset($_GET['mark_read'])) {
+            $notifId = $_GET['mark_read'];
+            $stmt = $this->db->prepare("UPDATE notifications SET is_read = TRUE WHERE id = ? AND user_id = ?");
+            $stmt->bind_param("ii", $notifId, $userId);
+            $stmt->execute();
+        }
+
         // Handle Administrative Actions
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             if (isset($_POST['receive_violation'])) {
@@ -253,6 +261,8 @@ class OSASController extends BaseController {
                     $message = "Violation for $studentName officially received.";
                     // Notify the guard
                     $this->userModel->createNotification($guardId, "OSAS has officially received the violation you submitted for $studentName.", $violationId);
+                    // Notify the student
+                    $this->userModel->createNotification($studentUserId, "OSAS has received your violation and is reviewing it. You will be notified when a sanction is assigned.", $violationId);
                 }
             } elseif (isset($_POST['update_violation'])) {
                 $violationId = $_POST['violation_id'];
@@ -260,6 +270,23 @@ class OSASController extends BaseController {
                 $sanction = $_POST['sanction'];
                 $description = $_POST['description'] ?? null;
                 $studentUserId = $_POST['student_user_id'];
+                
+                // If status is empty but we have a sanction, default to 'in_progress'
+                if (empty($status) && !empty($sanction)) {
+                    $status = 'in_progress';
+                }
+                // If status is still empty, get current status from database
+                if (empty($status)) {
+                    $stmtCheck = $this->db->prepare("SELECT status FROM violations WHERE id = ?");
+                    $stmtCheck->bind_param("i", $violationId);
+                    $stmtCheck->execute();
+                    $result = $stmtCheck->get_result();
+                    if ($result->num_rows > 0) {
+                        $status = $result->fetch_assoc()['status'];
+                    } else {
+                        $status = 'in_progress';
+                    }
+                }
                 
                 if ($description !== null) {
                     $stmt = $this->db->prepare("UPDATE violations SET status = ?, sanction = ?, description = ? WHERE id = ?");
@@ -291,8 +318,12 @@ class OSASController extends BaseController {
                     }
 
                     $message = "Violation record updated successfully.";
-                    // Notify the student
-                    $notifMsg = "Your violation record has been updated by OSAS. Status: " . ucfirst($status) . ". Sanction: " . ($sanction ?: "Pending");
+                    // Notify the student about the update
+                    $notifMsg = "Your violation has been updated. ";
+                    if (!empty($sanction)) {
+                        $notifMsg .= "Sanction: " . $sanction . ". ";
+                    }
+                    $notifMsg .= "Status: " . ucfirst($status) . ". Click to view your record.";
                     $this->userModel->createNotification($studentUserId, $notifMsg, $violationId);
                 }
             } elseif (isset($_POST['complete_sanction'])) {
@@ -350,6 +381,20 @@ class OSASController extends BaseController {
                 $stmt->bind_param("i", $violationId);
                 if ($stmt->execute()) {
                     $message = "Violation record permanently deleted.";
+                }
+            } elseif (isset($_POST['restore_violation'])) {
+                $violationId = $_POST['violation_id'];
+                $stmt = $this->db->prepare("UPDATE violations SET status = 'in_progress' WHERE id = ?");
+                $stmt->bind_param("i", $violationId);
+                if ($stmt->execute()) {
+                    $message = "Violation restored to Active Violations.";
+                }
+            } elseif (isset($_POST['delete_violation_permanent'])) {
+                $violationId = $_POST['violation_id'];
+                $stmt = $this->db->prepare("DELETE FROM violations WHERE id = ?");
+                $stmt->bind_param("i", $violationId);
+                if ($stmt->execute()) {
+                    $message = "Violation record permanently deleted from database.";
                 }
             }
         }
@@ -677,17 +722,24 @@ class OSASController extends BaseController {
                 $stmt = $this->db->prepare("DELETE FROM notifications WHERE id = ? AND user_id = ?");
                 $stmt->bind_param("ii", $notifId, $userId);
                 if ($stmt->execute()) {
-                    $message = "Notification deleted.";
+                    $_SESSION['notification_message'] = "Notification deleted.";
+                    header("Location: index.php?url=osas/notifications");
+                    exit();
                 }
             } elseif (isset($_POST['mark_as_read'])) {
                 $notifId = $_POST['notification_id'];
                 $stmt = $this->db->prepare("UPDATE notifications SET is_read = TRUE WHERE id = ? AND user_id = ?");
                 $stmt->bind_param("ii", $notifId, $userId);
                 if ($stmt->execute()) {
-                    $message = "Notification marked as read.";
+                    $_SESSION['notification_message'] = "Notification marked as read.";
+                    header("Location: index.php?url=osas/notifications");
+                    exit();
                 }
             }
         }
+
+        $message = $_SESSION['notification_message'] ?? '';
+        unset($_SESSION['notification_message']);
 
         $navData = $this->getNavData($userId);
         $notifResult = $this->userModel->getNotifications($userId, 50, $_SESSION['role']);

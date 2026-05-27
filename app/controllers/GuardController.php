@@ -67,6 +67,10 @@ class GuardController extends BaseController {
                 while($admin = $osasAdmins->fetch_assoc()) {
                     $this->userModel->createNotification($admin['id'], $notifMsg, $violationId);
                 }
+                
+                // Notify the student
+                $studentNotifMsg = "You have a new violation report. A guard has reported you for a school violation. OSAS will review it and contact you shortly. Click to view your record.";
+                $this->userModel->createNotification($_POST['student_user_id'], $studentNotifMsg, $violationId);
             } else {
                 $message = "Error submitting violation.";
             }
@@ -96,17 +100,20 @@ class GuardController extends BaseController {
         // Handle Profile Updates
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             if (isset($_POST['update_profile'])) {
-                $username = $_POST['username'];
-                $bio = $_POST['bio'];
-                if ($this->userModel->updateProfile($userId, $username, $bio)) {
-                    $_SESSION['username'] = $username;
+                $data = [
+                    'username' => $_POST['username'],
+                    'full_name' => $_POST['full_name'],
+                    'bio' => $_POST['bio'] ?? ''
+                ];
+                if ($this->userModel->updateUserBasic($userId, $data['username'], $data['full_name'], $data['bio'])) {
+                    $_SESSION['username'] = $data['username'];
                     $message = "Profile updated successfully!";
                 } else {
                     $message = "Error updating profile.";
                 }
             } elseif (isset($_FILES['profile_photo'])) {
                 $file = $_FILES['profile_photo'];
-                $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+                $ext = pathinfo($file['name'], PATHINFO_EXT);
                 $newName = "user_" . $userId . "_" . time() . "." . $ext;
                 $target = "assets/img/profiles/" . $newName;
                 
@@ -133,23 +140,24 @@ class GuardController extends BaseController {
                         $message = "Error updating password.";
                     }
                 }
-            } elseif (isset($_POST['edit_guard'])) {
-                $id = $_POST['guard_id'];
-                $newName = trim($_POST['new_guard_name']);
-                if (!empty($newName)) {
-                    if ($this->userModel->updateGuardListName($id, $newName)) {
-                        $message = "Guard name updated successfully.";
-                    } else {
-                        $message = "Error updating guard name.";
-                    }
-                } else {
-                    $message = "Guard name cannot be empty.";
-                }
             }
         }
 
         $guardInfo = $this->userModel->getGuardInfo($userId);
         $guardsList = $this->userModel->getGuardsWithCounts();
+        
+        // Get all violations organized by guard name
+        $violationsByGuard = [];
+        $allViolations = $this->violationModel->findByGuard($_SESSION['user_id']);
+        if ($allViolations) {
+            while($v = $allViolations->fetch_assoc()) {
+                $guardName = $v['recorded_by_guard_name'] ?? 'Unknown';
+                if (!isset($violationsByGuard[$guardName])) {
+                    $violationsByGuard[$guardName] = [];
+                }
+                $violationsByGuard[$guardName][] = $v;
+            }
+        }
         
         // Ensure bio and profile_photo exist
         $userBase = $this->userModel->findByUsername($_SESSION['username']);
@@ -173,6 +181,7 @@ class GuardController extends BaseController {
         echo $this->render_view('guard/guard_profile', array_merge($navData, [
             'guardInfo' => $guardInfo,
             'guardsList' => $guardsList,
+            'violationsByGuard' => $violationsByGuard,
             'message' => $message,
             'active' => 'profile'
         ]));
@@ -183,8 +192,19 @@ class GuardController extends BaseController {
             header("Location: index.php");
             exit();
         }
+        $userId = $_SESSION['user_id'];
+        
+        // Handle mark as read from URL parameter
+        if (isset($_GET['mark_read'])) {
+            $notifId = $_GET['mark_read'];
+            $stmt = $this->db->prepare("UPDATE notifications SET is_read = TRUE WHERE id = ? AND user_id = ?");
+            $stmt->bind_param("ii", $notifId, $userId);
+            $stmt->execute();
+        }
+        
         $guardInfo = $this->userModel->getGuardInfo($_SESSION['user_id']);
-        $violations = $this->violationModel->findByGuard($_SESSION['user_id']);
+        $activeViolations = $this->violationModel->findActiveByGuard($_SESSION['user_id']);
+        $completedViolations = $this->violationModel->findCompletedByGuard($_SESSION['user_id']);
         
         $displayName = ($guardInfo && $guardInfo['full_name'] === 'CHMSU Security') ? 'CHMSU Security' : ($_SESSION['username'] ?? 'Guard');
 
@@ -193,7 +213,8 @@ class GuardController extends BaseController {
         echo $this->render_view('guard/guard_records', array_merge($navData, [
             'guardInfo' => $guardInfo,
             'displayName' => $displayName,
-            'violations' => $violations,
+            'activeViolations' => $activeViolations,
+            'completedViolations' => $completedViolations,
             'active' => 'records'
         ]));
     }
@@ -213,10 +234,15 @@ class GuardController extends BaseController {
                 $stmt = $this->db->prepare("DELETE FROM notifications WHERE id = ? AND user_id = ?");
                 $stmt->bind_param("ii", $notifId, $userId);
                 if ($stmt->execute()) {
-                    $message = "Notification deleted.";
+                    $_SESSION['notification_message'] = "Notification deleted.";
+                    header("Location: index.php?url=guard/notifications");
+                    exit();
                 }
             }
         }
+
+        $message = $_SESSION['notification_message'] ?? '';
+        unset($_SESSION['notification_message']);
 
         $navData = $this->getNavData($userId);
         $notifResult = $this->userModel->getNotifications($userId, 50, $_SESSION['role']);

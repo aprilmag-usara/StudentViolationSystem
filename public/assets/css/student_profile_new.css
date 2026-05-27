@@ -1,8 +1,7 @@
-/* Profile Page Enhanced Design */
 .profile-layout {
     display: grid;
     grid-template-columns: 1fr 1.8fr;
-    gap: 30px;
+    gap: 24px;
     align-items: start;
     margin-top: 20px;
 }
@@ -10,7 +9,7 @@
 .profile-sidebar-card {
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid var(--glass-border);
-    border-radius: 30px;
+    border-radius: 24px;
     padding: 40px 30px;
     text-align: center;
     display: flex;
@@ -21,18 +20,18 @@
 .profile-main-content {
     display: flex;
     flex-direction: column;
-    gap: 25px;
+    gap: 20px;
 }
 
 .profile-data-card {
     background: rgba(0, 0, 0, 0.15);
     border: 1px solid var(--glass-border);
-    border-radius: 24px;
-    padding: 30px;
+    border-radius: 20px;
+    padding: 26px;
 }
 
 .card-title-modern {
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: 700;
     color: var(--sage-green);
     margin-bottom: 25px;
@@ -53,7 +52,7 @@
 .info-block {
     background: rgba(255, 255, 255, 0.02);
     padding: 18px 22px;
-    border-radius: 18px;
+    border-radius: 16px;
     border: 1px solid rgba(255, 255, 255, 0.05);
     transition: all 0.3s ease;
 }
@@ -76,35 +75,19 @@
 .info-block .value {
     font-weight: 600;
     color: white;
-    font-size: 1.05rem;
+    font-size: 1rem;
 }
 
 .profile-bio-modern {
     background: rgba(64, 145, 108, 0.05);
     padding: 25px;
-    border-radius: 20px;
+    border-radius: 16px;
     border-left: 4px solid var(--sage-green);
     margin-top: 10px;
     font-style: italic;
     color: rgba(255, 255, 255, 0.8);
     line-height: 1.7;
-    font-size: 1rem;
-}
-
-.qr-card-modern {
-    background: white;
-    padding: 20px;
-    border-radius: 20px;
-    width: fit-content;
-    margin: 10px auto 25px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-    transition: all 0.3s ease;
-    position: relative;
-    z-index: 5;
-}
-
-.qr-card-modern:hover {
-    transform: scale(1.05);
+    font-size: 0.95rem;
 }
 
 .profile-actions-modern {
@@ -117,7 +100,7 @@
 .btn-profile-action {
     width: 100%;
     padding: 14px;
-    border-radius: 15px;
+    border-radius: 14px;
     font-weight: 600;
     font-size: 0.9rem;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -143,8 +126,8 @@
 }
 
 .btn-profile-action:hover {
-    transform: translateY(-3px);
-    filter: brightness(1.1);
+    transform: translateY(-2px);
+    filter: brightness(1.05);
 }
 
 .stats-grid-modern {
@@ -155,7 +138,7 @@
 
 .stat-box-modern {
     padding: 25px 15px;
-    border-radius: 22px;
+    border-radius: 18px;
     text-align: center;
     background: rgba(255, 255, 255, 0.02);
     border: 1px solid rgba(255, 255, 255, 0.05);
@@ -164,12 +147,12 @@
 
 .stat-box-modern:hover {
     background: rgba(255, 255, 255, 0.04);
-    transform: translateY(-5px);
+    transform: translateY(-3px);
 }
 
 .stat-box-modern .val {
     display: block;
-    font-size: 2rem;
+    font-size: 1.8rem;
     font-weight: 800;
     margin-bottom: 5px;
 }
@@ -190,7 +173,7 @@
     width: 45px;
     height: 45px;
     background: rgba(64, 145, 108, 0.1);
-    border-radius: 12px;
+    border-radius: 14px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -209,7 +192,7 @@
     gap: 15px;
     background: rgba(255, 255, 255, 0.02);
     padding: 15px 20px;
-    border-radius: 18px;
+    border-radius: 16px;
     border: 1px solid rgba(255, 255, 255, 0.05);
     transition: all 0.3s ease;
 }
@@ -232,4 +215,315 @@
     color: rgba(255, 255, 255, 0.4);
 }
 
-/* Year Section Styling */
+.profile-photo-container {
+    cursor: pointer;
+    width: 140px;
+    height: 140px;
+    margin: 0 auto 16px !important;
+    position: relative;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 4px solid var(--sage-green);
+    box-shadow: 0 8px 24px rgba(64, 145, 108, 0.25);
+    transition: all 0.3s ease;
+}
+
+.profile-photo-container:hover {
+    transform: scale(1.05);
+    box-shadow: 0 12px 32px rgba(64, 145, 108, 0.35);
+}
+
+.profile-photo {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover;
+    border-radius: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.photo-edit-btn {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    background: var(--sage-green);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    border: 3px solid #081c15;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    transition: all 0.3s ease;
+}
+
+.photo-edit-btn:hover {
+    background: #48a57a;
+    transform: scale(1.1);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
+}
+
+/* Edit Profile Modal Styles */
+.edit-profile-modal {
+    max-width: 700px;
+    width: 95%;
+}
+
+.modal-header-edit {
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.modal-header-edit h2 {
+    margin: 0 0 8px 0;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: white;
+}
+
+.modal-subtitle {
+    margin: 0;
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.edit-profile-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-row-edit {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.form-group-edit {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-row-edit .form-group-edit:first-child:nth-last-child(1) {
+    grid-column: span 2;
+}
+
+.form-label-edit {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.6);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+}
+
+.form-input-edit, .form-textarea-edit {
+    width: 100%;
+    padding: 14px 18px;
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    color: white;
+    font-size: 0.95rem;
+    outline: none;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+.form-input-edit:focus, .form-textarea-edit:focus {
+    border-color: var(--sage-green);
+    background: rgba(0, 0, 0, 0.35);
+    box-shadow: 0 0 20px rgba(64, 145, 108, 0.1);
+}
+
+.form-input-edit::placeholder, .form-textarea-edit::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+}
+
+.form-input-edit:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.form-textarea-edit {
+    resize: vertical;
+    min-height: 120px;
+}
+
+.modal-buttons-edit {
+    display: flex;
+    gap: 14px;
+    justify-content: flex-end;
+    margin-top: 10px;
+}
+
+.modal-btn-edit {
+    padding: 14px 28px;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Poppins', sans-serif;
+    border: 1px solid transparent;
+}
+
+.modal-btn-cancel {
+    background: rgba(255, 255, 255, 0.08);
+    color: white;
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+.modal-btn-cancel:hover {
+    background: rgba(255, 255, 255, 0.12);
+    transform: translateY(-2px);
+}
+
+.modal-btn-save {
+    background: var(--sage-green);
+    color: white;
+    border-color: var(--sage-green);
+    box-shadow: 0 4px 15px rgba(64, 145, 108, 0.3);
+}
+
+.modal-btn-save:hover {
+    background: #48a57a;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(64, 145, 108, 0.35);
+}
+
+/* Bio Sidebar Styles */
+.profile-bio-sidebar {
+    margin-bottom: 32px;
+    margin-top: 8px;
+    text-align: center;
+}
+
+.bio-text-sidebar {
+    margin: 0;
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.7);
+    line-height: 1.6;
+    font-style: italic;
+}
+
+@media (max-width: 640px) {
+    .form-row-edit {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+    
+    .modal-buttons-edit {
+        flex-direction: column-reverse;
+    }
+    
+    .modal-btn-edit {
+        width: 100%;
+    }
+}
+
+/* Guard Management Styles */
+.border-top-white {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.flex-grow-1 {
+  flex-grow: 1;
+}
+
+.flex-shrink-0 {
+  flex-shrink: 0;
+}
+
+.mt-auto {
+  margin-top: auto;
+}
+
+.guard-management-list {
+  max-height: 250px;
+  overflow-y: auto;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  padding: 15px;
+}
+
+.guard-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 15px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  margin-bottom: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.3s ease;
+}
+
+.guard-item:last-child {
+  margin-bottom: 0;
+}
+
+.guard-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(64, 145, 108, 0.3);
+}
+
+.guard-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.guard-item-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: white;
+}
+
+.guard-item-status {
+  font-size: 0.8rem;
+  color: #40916c;
+}
+
+.guard-item-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-action {
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.btn-edit-mini {
+  background: rgba(64, 145, 108, 0.15);
+  color: #40916c;
+  border: 1px solid rgba(64, 145, 108, 0.25);
+}
+
+.btn-edit-mini:hover {
+  background: #40916c;
+  color: white;
+  transform: scale(1.05);
+}
+
+.btn-delete-mini {
+  background: rgba(220, 53, 69, 0.15);
+  color: #dc3545;
+  border: 1px solid rgba(220, 53, 69, 0.25);
+}
+
+.btn-delete-mini:hover {
+  background: #dc3545;
+  color: white;
+  transform: scale(1.05);
+}

@@ -131,6 +131,7 @@ $notifications = $notifications ?? [];
                         <th>Type</th>
                         <th>Violation Date</th>
                         <th>Sanction Served</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -153,10 +154,26 @@ $notifications = $notifications ?? [];
                             <td class="font-italic text-sage-green opacity-60">
                                 <?php echo htmlspecialchars($v['sanction']); ?>
                             </td>
+                            <td>
+                                <div class="action-btn-group" style="gap: 8px;">
+                                    <form method="POST" style="width: 100%;">
+                                        <input type="hidden" name="violation_id" value="<?php echo $v['id']; ?>">
+                                        <button type="submit" name="restore_violation" class="btn-record-action btn-edit-record" style="padding: 8px 12px; font-size: 0.75rem;">
+                                            Restore
+                                        </button>
+                                    </form>
+                                    <form method="POST" style="width: 100%;" onsubmit="return confirm('Are you sure you want to delete this record PERMANENTLY? This cannot be undone!');">
+                                        <input type="hidden" name="violation_id" value="<?php echo $v['id']; ?>">
+                                        <button type="submit" name="delete_violation_permanent" class="btn-record-action btn-delete-record-styled" style="padding: 8px 12px; font-size: 0.75rem;">
+                                            Delete Permanently
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
                         </tr>
                         <?php endwhile; ?>
                     <?php else: ?>
-                        <tr><td colspan="5" class="text-center p-40 opacity-30">No history found.</td></tr>
+                        <tr><td colspan="6" class="text-center p-40 opacity-30">No history found.</td></tr>
                     <?php endif; ?>
                 </tbody>
             </table>
@@ -201,6 +218,7 @@ $notifications = $notifications ?? [];
                         <label class="form-label">Current Status</label>
                         <select name="status" id="edit_status" class="form-select">
                             <option value="pending">Pending</option>
+                            <option value="received">Received</option>
                             <option value="in_progress">In Progress</option>
                             <option value="warning_sent">Warning Sent</option>
                             <option value="parent_called">Parent Called</option>

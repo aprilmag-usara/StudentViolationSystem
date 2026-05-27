@@ -1,7 +1,4 @@
 <?php 
-/** @var string $message */
-/** @var array $notifications */
-/** @var int $unreadCount */
 $message = $message ?? '';
 $notifications = $notifications ?? [];
 $unreadCount = $unreadCount ?? 0;
@@ -20,10 +17,8 @@ $unreadCount = $unreadCount ?? 0;
 <body>
     <div class="dashboard-bg-overlay"></div>
 
-    <!-- Navigation & Modals -->
     <?php include __DIR__ . '/../navbar.php'; ?>
 
-    <!-- Main Content -->
     <main class="main-dashboard">
         <div class="welcome-section">
             <div class="flex-between align-end">
@@ -39,55 +34,61 @@ $unreadCount = $unreadCount ?? 0;
             </div>
         </div>
 
-        <?php if (!empty($message)): ?>
-            <div class="toast-container" id="toast">
-                <div class="toast-message">
-                    <?php echo $message; ?>
-                </div>
-            </div>
-        <?php endif; ?>
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                <?php if (!empty($message)): ?>
+                    const msg = "<?php echo addslashes($message); ?>";
+                    const isError = msg.toLowerCase().includes('error') || msg.toLowerCase().includes('failed');
+                    showToast(isError ? 'Action Failed' : 'Success', msg, isError ? 'error' : 'success');
+                <?php endif; ?>
+            });
+        </script>
 
-        <div class="max-w-800 mx-auto">
-            <div class="glass-card p-0 overflow-hidden">
-                <div class="p-20 border-bottom-glass flex-between align-center">
-                    <h3 class="m-0 text-sage-green">Recent Notifications</h3>
-                    <span class="fs-0-8 text-white-40"><?php echo count($notifications); ?> total</span>
-                </div>
-                
-                <div class="notif-list-full">
-                    <?php if (!empty($notifications)): ?>
-                        <?php foreach($notifications as $n): ?>
-                            <div class="notif-full-item <?php echo $n['is_read'] ? '' : 'unread'; ?>">
-                                <div class="notif-full-icon">
-                                    <img src="assets/img/icons/notification.svg" alt="Notif" width="24" height="24">
+        <div class="notif-page-container">
+            <div class="notif-list-header">
+                <h3>Recent Notifications</h3>
+            </div>
+            
+            <?php if (!empty($notifications)): ?>
+                <div class="notif-list">
+                    <?php foreach($notifications as $n): 
+                        $targetUrl = "index.php?url=guard/records" . (isset($n['violation_id']) ? "&violation_id=" . $n['violation_id'] : "");
+                    ?>
+                        <div class="notif-item <?php echo $n['is_read'] ? '' : 'unread'; ?>">
+                            <div class="notif-icon-wrapper" style="cursor: pointer;" onclick="window.location.href='<?php echo $targetUrl; ?><?php echo !$n['is_read'] ? (strpos($targetUrl, '?') !== false ? '&' : '?') . 'mark_read=' . $n['id'] : ''; ?>'">
+                                <img src="assets/img/icons/notification.svg" alt="Notification">
+                            </div>
+                            <div class="notif-content-wrapper" style="cursor: pointer;" onclick="window.location.href='<?php echo $targetUrl; ?><?php echo !$n['is_read'] ? (strpos($targetUrl, '?') !== false ? '&' : '?') . 'mark_read=' . $n['id'] : ''; ?>'">
+                                <div class="notif-message">
+                                    <?php echo htmlspecialchars($n['message']); ?>
                                 </div>
-                                <div class="notif-full-content">
-                                    <div class="notif-full-msg">
-                                        <?php echo htmlspecialchars($n['message']); ?>
-                                        <?php if (!$n['is_read']): ?>
-                                            <span class="new-badge-notif">NEW</span>
-                                        <?php endif; ?>
-                                    </div>
-                                    <div class="notif-full-time"><?php echo date('M d, Y • h:i A', strtotime($n['created_at'])); ?></div>
-                                </div>
-                                <div class="notif-full-actions">
-                                    <form method="POST" action="index.php?url=guard/notifications">
-                                        <input type="hidden" name="notification_id" value="<?php echo $n['id']; ?>">
-                                        <button type="submit" name="delete_notification" class="delete-btn-notif" title="Delete">
-                                            &times;
-                                        </button>
-                                    </form>
+                                <div class="notif-meta">
+                                    <div class="notif-time"><?php echo date('M d, Y • h:i A', strtotime($n['created_at'])); ?></div>
+                                    <?php if (!$n['is_read']): ?>
+                                        <span class="notif-badge">NEW</span>
+                                    <?php endif; ?>
                                 </div>
                             </div>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <div class="p-60 text-center">
-                            <img src="assets/img/icons/notification.svg" alt="Empty" width="60" height="60" style="opacity: 0.2; margin-bottom: 15px;">
-                            <p class="text-white-30">No notifications found.</p>
+                            <div class="notif-actions-wrapper">
+                                <form method="POST" action="index.php?url=guard/notifications" onsubmit="return confirm('Are you sure you want to delete this notification?');">
+                                    <input type="hidden" name="notification_id" value="<?php echo $n['id']; ?>">
+                                    <button type="submit" name="delete_notification" class="notif-action-btn delete" title="Delete">
+                                        &times;
+                                    </button>
+                                </form>
+                            </div>
                         </div>
-                    <?php endif; ?>
+                    <?php endforeach; ?>
                 </div>
-            </div>
+            <?php else: ?>
+                <div class="notif-empty-state">
+                    <div class="notif-empty-state-icon">
+                        <img src="assets/img/icons/notification.svg" alt="Empty">
+                    </div>
+                    <h3>No notifications yet</h3>
+                    <p>You're all caught up!</p>
+                </div>
+            <?php endif; ?>
         </div>
     </main>
 

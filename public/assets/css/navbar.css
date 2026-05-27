@@ -3,38 +3,39 @@
     position: fixed;
     top: 0;
     left: 0;
-    width: 250px;
+    width: 240px;
     height: 100vh;
     background: rgba(4, 13, 9, 0.95);
     backdrop-filter: blur(30px);
     border-right: 1px solid var(--glass-border);
     display: flex;
     flex-direction: column;
-    padding: 40px 0;
+    padding: 15px 0 0 0;
     z-index: 1000;
     box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5);
+    overflow-y: auto;
 }
 
 .sidebar .logo-container {
-    padding: 0 25px;
-    margin-bottom: 60px;
+    padding: 0 20px;
+    margin-bottom: 30px;
 }
 
 .sidebar-nav {
     flex: 1;
-    padding: 0 12px;
+    padding: 0 10px;
 }
 
 .sidebar-link {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 12px 18px;
+    gap: 10px;
+    padding: 10px 16px;
     color: rgba(255, 255, 255, 0.6);
     text-decoration: none;
-    border-radius: 12px;
-    margin-bottom: 5px;
-    font-size: 0.9rem;
+    border-radius: 10px;
+    margin-bottom: 4px;
+    font-size: 0.85rem;
     font-weight: 500;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -73,7 +74,7 @@
 }
 
 .sidebar-footer {
-    padding: 25px 12px;
+    padding: 15px 12px;
     border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
@@ -91,9 +92,13 @@
 
 /* Offset for OSAS Main Content */
 body:has(.sidebar) .main-dashboard {
-    margin-left: 250px;
+    margin-left: 240px;
     margin-top: 0;
-    padding: 40px 60px;
+    padding: 40px 60px 80px 60px;
+    height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    box-sizing: border-box;
 }
 
 /* Navbar Styles (Student/Guard) */
@@ -102,15 +107,15 @@ body:has(.sidebar) .main-dashboard {
     top: 0;
     width: 100%;
     height: 80px;
-    background: rgba(8, 28, 21, 0.7);
-    backdrop-filter: blur(20px);
+    background: rgba(8, 28, 21, 0.95);
+    backdrop-filter: blur(25px);
     border-bottom: 1px solid var(--glass-border);
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 0 80px;
     box-sizing: border-box;
-    z-index: 1000;
+    z-index: 2000;
 }
 
 .logo-container {
@@ -162,37 +167,47 @@ body:has(.sidebar) .main-dashboard {
     box-shadow: 0 4px 15px rgba(64, 145, 108, 0.3);
 }
 
+/* Relative Position Container */
+.relative-pos {
+    position: relative;
+}
+
 /* Notification Badge */
-.notif-badge {
+.notif-badge, .notif-badge-sidebar {
     background: #e74c3c;
     color: white;
     font-size: 0.7rem;
     padding: 2px 8px;
     border-radius: 10px;
-    margin-left: auto;
     font-weight: 700;
-    box-shadow: 0 0 10px rgba(231, 76, 60, 0.5);
-    animation: pulse 2s infinite;
 }
 
-@keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-    100% { transform: scale(1); }
+.notif-badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    transform: translate(25%, -25%);
+}
+
+.notif-badge-sidebar {
+    position: absolute;
+    top: 8px;
+    right: 10px;
 }
 
 /* Notifications Dropdown (Shared-style) */
 .notif-dropdown {
-    position: absolute;
-    top: 70px;
-    right: 50px;
-    width: 320px;
-    background: var(--bg-dark);
+    position: fixed;
+    top: 90px;
+    right: 80px;
+    width: 340px;
+    max-height: 70vh;
+    background: rgba(4, 13, 9, 0.98);
     border: 1px solid var(--glass-border);
     border-radius: 20px;
-    backdrop-filter: blur(25px);
+    backdrop-filter: blur(30px);
     box-shadow: 0 15px 40px rgba(0,0,0,0.5);
-    z-index: 3000;
+    z-index: 2500;
     display: none;
     overflow: hidden;
 }
@@ -215,8 +230,9 @@ body:has(.sidebar) .main-dashboard {
 }
 
 .notif-list-container {
-    max-height: 400px;
+    max-height: 55vh;
     overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .notif-item {
@@ -248,10 +264,13 @@ body:has(.sidebar) .main-dashboard {
 
 /* Offset for OSAS Sidebar */
 body:has(.sidebar) .notif-dropdown {
+    position: absolute;
     left: 290px;
-    top: auto;
-    bottom: 80px;
+    top: 20px;
+    bottom: auto;
     right: auto;
+    width: 340px;
+    max-height: 80vh;
 }
 
 /* Modal Buttons & Specifics (Core layout in dashboard.css) */

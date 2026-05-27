@@ -54,7 +54,6 @@ $notifications = $notifications ?? [];
                     <?php endif; ?>
                 });
             </script>
-        </div>
 
         <div id="noResults" class="text-center py-60 display-none" style="display: none;">
             <div class="fs-3-0 mb-10"><img src="assets/img/icons/search.svg" alt="Magnifying Glass icon" width="35" height="35"></div>
@@ -91,7 +90,6 @@ $notifications = $notifications ?? [];
                 <?php endif; ?>
             <?php endforeach; ?>
         </main>
-    </div>
 
     <!-- Student Detail Modal -->
     <div id="studentModal" class="modal-overlay">

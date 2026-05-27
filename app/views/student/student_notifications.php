@@ -1,6 +1,6 @@
 <?php 
-$notifications = $notifications ?? [];
 $message = $message ?? '';
+$notifications = $notifications ?? [];
 $unreadCount = $unreadCount ?? 0;
 ?>
 <!DOCTYPE html>
@@ -8,10 +8,10 @@ $unreadCount = $unreadCount ?? 0;
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SVS | OSAS Notifications</title>
+    <title>SVS | Student Notifications</title>
     <link rel="stylesheet" href="assets/css/navbar.css">
     <link rel="stylesheet" href="assets/css/dashboard.css">
-    <link rel="stylesheet" href="assets/css/osas.css">
+    <link rel="stylesheet" href="assets/css/student.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -23,12 +23,12 @@ $unreadCount = $unreadCount ?? 0;
         <div class="welcome-section">
             <div class="flex-between align-end">
                 <div>
-                    <h1>Notifications</h1>
-                    <p>Stay updated on recent reports and system activity.</p>
+                    <h1>Your Notifications</h1>
+                    <p>Track all updates regarding your violations and system alerts.</p>
                 </div>
                 <?php if (!empty($notifications)): ?>
                     <div>
-                        <a href="index.php?url=osas/mark_read" class="modal-btn modal-btn-yes px-25 no-underline">Mark All as Read</a>
+                        <a href="index.php?url=student/mark_read" class="modal-btn modal-btn-yes px-25 no-underline">Mark All as Read</a>
                     </div>
                 <?php endif; ?>
             </div>
@@ -39,7 +39,7 @@ $unreadCount = $unreadCount ?? 0;
                 <?php if (!empty($message)): ?>
                     const msg = "<?php echo addslashes($message); ?>";
                     const isError = msg.toLowerCase().includes('error') || msg.toLowerCase().includes('failed');
-                    showToast(isError ? 'Notification' : 'Success', msg, isError ? 'error' : 'success');
+                    showToast(isError ? 'Action Failed' : 'Success', msg, isError ? 'error' : 'success');
                 <?php endif; ?>
             });
         </script>
@@ -51,8 +51,8 @@ $unreadCount = $unreadCount ?? 0;
             
             <?php if (!empty($notifications)): ?>
                 <div class="notif-list">
-                    <?php foreach ($notifications as $n): 
-                        $targetUrl = "index.php?url=osas/records" . (isset($n['violation_id']) ? "&violation_id=" . $n['violation_id'] : "");
+                    <?php foreach($notifications as $n): 
+                        $targetUrl = "index.php?url=student/records" . (isset($n['violation_id']) ? "&violation_id=" . $n['violation_id'] : "");
                     ?>
                         <div class="notif-item <?php echo $n['is_read'] ? '' : 'unread'; ?>">
                             <div class="notif-icon-wrapper" style="cursor: pointer;" onclick="window.location.href='<?php echo $targetUrl; ?><?php echo !$n['is_read'] ? (strpos($targetUrl, '?') !== false ? '&' : '?') . 'mark_read=' . $n['id'] : ''; ?>'">
@@ -70,10 +70,10 @@ $unreadCount = $unreadCount ?? 0;
                                 </div>
                             </div>
                             <div class="notif-actions-wrapper">
-                                <form method="POST" class="display-inline" onsubmit="return confirm('Are you sure you want to delete this notification?');">
+                                <form method="POST" action="index.php?url=student/notifications" onsubmit="return confirm('Are you sure you want to delete this notification?');">
                                     <input type="hidden" name="notification_id" value="<?php echo $n['id']; ?>">
                                     <button type="submit" name="delete_notification" class="notif-action-btn delete" title="Delete">
-                                        ×
+                                        &times;
                                     </button>
                                 </form>
                             </div>
@@ -92,6 +92,6 @@ $unreadCount = $unreadCount ?? 0;
         </div>
     </main>
 
-    <script src="assets/js/osas.js"></script>
+    <script src="assets/js/main.js"></script>
 </body>
 </html>

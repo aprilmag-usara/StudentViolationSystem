@@ -103,20 +103,6 @@ $notifications = $notifications ?? [];
                 <!-- Right Side Stats -->
                 <div class="chart-card col-4">
                     <div class="chart-header">
-                        <h3>Quick Scanner</h3>
-                        <span class="subtitle">Scan User QR Code</span>
-                    </div>
-                    <div class="scanner-area-mini text-center">
-                        <div id="reader" style="width: 100%; border-radius: 12px; overflow: hidden; margin-bottom: 20px; display: none; border: 1px solid var(--glass-border);"></div>
-                        <div id="scannerIconMini" class="scanner-icon-box">
-                            <img src="https://proicons.com/icon/11866.svg" alt="Scanner" width="30" height="30" style="opacity: 0.6;">
-                        </div>
-                        <p id="scannerInstructions" class="text-white-40 fs-0-8 mb-20">Click below to start verifying user QR codes</p>
-                        <button id="startScannerOsas" class="action-btn w-100">Start Verification</button>
-                        <button id="stopScannerOsas" class="action-btn w-100 display-none" style="background: #e74c3c;">Close Scanner</button>
-                    </div>
-
-                    <div class="chart-header mt-30">
                         <h3>System Integrity</h3>
                         <span class="subtitle">Automated Escalation Active</span>
                     </div>
@@ -425,50 +411,7 @@ $notifications = $notifications ?? [];
                 });
             }
 
-            const html5QrCode = new Html5Qrcode("reader");
-            const startBtn = document.getElementById('startScannerOsas');
-            const stopBtn = document.getElementById('stopScannerOsas');
-            const reader = document.getElementById('reader');
-            const icon = document.getElementById('scannerIconMini');
 
-            const onScanSuccess = (decodedText) => {
-                html5QrCode.stop().then(() => {
-                    if (decodedText.includes('view_user')) {
-                        window.location.href = decodedText;
-                    } else {
-                        alert("Invalid QR Code: " + decodedText);
-                        location.reload();
-                    }
-                });
-            };
-
-            startBtn.addEventListener('click', () => {
-                reader.style.display = 'block';
-                icon.style.display = 'none';
-                document.getElementById('scannerInstructions').style.display = 'none';
-                startBtn.classList.add('display-none');
-                stopBtn.classList.remove('display-none');
-
-                html5QrCode.start(
-                    { facingMode: "environment" },
-                    { fps: 10, qrbox: 250 },
-                    onScanSuccess
-                ).catch(err => {
-                    console.error(err);
-                    alert("Could not access camera.");
-                    location.reload();
-                });
-            });
-
-            stopBtn.addEventListener('click', () => {
-                html5QrCode.stop().then(() => {
-                    reader.style.display = 'none';
-                    icon.style.display = 'flex';
-                    document.getElementById('scannerInstructions').style.display = 'block';
-                    startBtn.classList.remove('display-none');
-                    stopBtn.classList.add('display-none');
-                });
-            });
         });
     </script>
 </body>

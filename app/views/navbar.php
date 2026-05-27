@@ -55,7 +55,7 @@ $active = $active ?? '';
             <li><a href="index.php?url=<?php echo $role; ?>/dashboard" class="<?php echo $active === 'home' ? 'active' : ''; ?>">Home Page</a></li>
             <li><a href="index.php?url=<?php echo $role; ?>/records" class="<?php echo $active === 'records' ? 'active' : ''; ?>">Records</a></li>
             <li>
-                <a href="#" id="navNotifLink" class="relative-pos <?php echo $active === 'notifications' ? 'active' : ''; ?>">
+                <a href="index.php?url=<?php echo $role; ?>/notifications" class="relative-pos <?php echo $active === 'notifications' ? 'active' : ''; ?>">
                     Notifications
                     <?php if (isset($unreadCount) && $unreadCount > 0): ?>
                         <span class="notif-badge"><?php echo $unreadCount; ?></span>
@@ -67,31 +67,6 @@ $active = $active ?? '';
         </ul>
     </nav>
 <?php endif; ?>
-
-<!-- Notifications Dropdown -->
-<div id="notifDropdown" class="notif-dropdown">
-    <div class="notif-header">
-        <h4 class="m-0">Notifications</h4>
-        <?php if (isset($unreadCount) && $unreadCount > 0): ?>
-            <a href="index.php?url=<?php echo $role; ?>/mark_read" class="fs-0-75 text-sage-green no-underline">Mark all as read</a>
-        <?php endif; ?>
-    </div>
-    <div class="notif-list-container">
-        <?php if (isset($notifications) && !empty($notifications)): ?>
-            <?php foreach($notifications as $n): ?>
-                <div class="notif-item <?php echo $n['is_read'] ? '' : 'unread'; ?>" 
-                     data-url="index.php?url=<?php echo $role; ?>/records<?php echo isset($n['violation_id']) ? '&violation_id=' . $n['violation_id'] : ''; ?>">
-                    <div class="notif-msg"><?php echo htmlspecialchars($n['message']); ?></div>
-                    <div class="notif-time"><?php echo date('M d, h:i A', strtotime($n['created_at'])); ?></div>
-                </div>
-            <?php endforeach; ?>
-        <?php else: ?>
-            <div class="p-30 text-center text-white-30 fs-0-9">
-                No notifications yet.
-            </div>
-        <?php endif; ?>
-    </div>
-</div>
 
 <!-- Logout Modal -->
 <div id="logoutModal" class="modal-overlay">

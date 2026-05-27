@@ -47,7 +47,7 @@ $violations = $violations ?? null;
         <div class="max-w-1000 mx-auto">
             <div class="glass-card mb-40 overflow-hidden">
                 <div class="card-header-styled">
-                    <h3 class="m-0 fs-1-2 fw-600"><i class="fas fa-exclamation-triangle mr-10 text-sage-green"></i>Recent Violations</h3>
+                    <h3 class="m-0 fs-1-2 fw-600">Recent Violations</h3>
                     <a href="index.php?url=student/records" class="view-all-link">View All Records</a>
                 </div>
                 

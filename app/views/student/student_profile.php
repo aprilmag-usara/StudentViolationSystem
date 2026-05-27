@@ -17,7 +17,6 @@ $stats = $stats ?? [];
     <link rel="stylesheet" href="assets/css/student.css">
     <link rel="stylesheet" href="assets/css/student_profile_new.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
     <div class="dashboard-bg-overlay"></div>
@@ -27,21 +26,57 @@ $stats = $stats ?? [];
 
     <!-- Edit Profile Modal -->
     <div id="editProfileModal" class="modal-overlay">
-        <div class="modal-content text-left">
+        <div class="modal-content text-left edit-profile-modal">
             <span class="modal-close" onclick="hideEditModal()">&times;</span>
-            <h2 class="mb-20">Edit Profile</h2>
-            <form method="POST" action="index.php?url=student/profile" class="flex-column gap-20">
-                <div class="form-group">
-                    <label>Username</label>
-                    <input type="text" name="username" value="<?php echo htmlspecialchars($studentInfo['username']); ?>" required class="form-input-styled">
+            <div class="modal-header-edit">
+                <h2>Edit Your Profile</h2>
+                <p class="modal-subtitle">Update your personal information</p>
+            </div>
+            <form method="POST" action="index.php?url=student/profile" class="edit-profile-form">
+                <div class="form-row-edit">
+                    <div class="form-group-edit">
+                        <label class="form-label-edit">Full Name</label>
+                        <input type="text" name="full_name" value="<?php echo htmlspecialchars($studentInfo['full_name']); ?>" required class="form-input-edit">
+                    </div>
+                    <div class="form-group-edit">
+                        <label class="form-label-edit">Username</label>
+                        <input type="text" name="username" value="<?php echo htmlspecialchars($studentInfo['username']); ?>" required class="form-input-edit">
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>Bio</label>
-                    <textarea name="bio" rows="4" class="form-textarea-styled"><?php echo htmlspecialchars($studentInfo['bio'] ?? ''); ?></textarea>
+                
+                <div class="form-row-edit">
+                    <div class="form-group-edit">
+                        <label class="form-label-edit">Student ID</label>
+                        <input type="text" value="<?php echo htmlspecialchars($studentInfo['student_id_number']); ?>" class="form-input-edit" disabled>
+                    </div>
                 </div>
-                <div class="modal-buttons">
-                    <button type="button" class="modal-btn modal-btn-no" onclick="hideEditModal()">Cancel</button>
-                    <button type="submit" name="update_profile" class="modal-btn modal-btn-yes">Update Profile</button>
+                
+                <div class="form-row-edit">
+                    <div class="form-group-edit">
+                        <label class="form-label-edit">Course</label>
+                        <input type="text" name="course" value="<?php echo htmlspecialchars($studentInfo['course']); ?>" required class="form-input-edit">
+                    </div>
+                </div>
+                
+                <div class="form-row-edit">
+                    <div class="form-group-edit">
+                        <label class="form-label-edit">Year Level</label>
+                        <input type="text" name="year_level" value="<?php echo htmlspecialchars($studentInfo['year_level']); ?>" required class="form-input-edit">
+                    </div>
+                    <div class="form-group-edit">
+                        <label class="form-label-edit">Section</label>
+                        <input type="text" name="section" value="<?php echo htmlspecialchars($studentInfo['section']); ?>" required class="form-input-edit">
+                    </div>
+                </div>
+                
+                <div class="form-group-edit">
+                    <label class="form-label-edit">Bio</label>
+                    <textarea name="bio" rows="4" class="form-textarea-edit" placeholder="Tell us a little about yourself..."><?php echo htmlspecialchars($studentInfo['bio'] ?? ''); ?></textarea>
+                </div>
+                
+                <div class="modal-buttons-edit">
+                    <button type="button" class="modal-btn-edit modal-btn-cancel" onclick="hideEditModal()">Cancel</button>
+                    <button type="submit" name="update_profile" class="modal-btn-edit modal-btn-save">Save Changes</button>
                 </div>
             </form>
         </div>
@@ -75,7 +110,7 @@ $stats = $stats ?? [];
 
     <!-- Hidden Photo Upload Form -->
     <form id="photoForm" method="POST" action="index.php?url=student/profile" enctype="multipart/form-data" class="display-none">
-        <input type="file" name="profile_photo" id="photoInput" onchange="document.getElementById('photoForm').submit()" accept="image/*">
+        <input type="file" name="profile_photo" id="photoInput" onchange="document.getElementById('photoForm').submit()" accept="image/*" class="display-none">
     </form>
 
     <main class="main-dashboard">
@@ -87,7 +122,7 @@ $stats = $stats ?? [];
         <div class="profile-layout max-w-1000 mx-auto">
             <!-- Sidebar: Photo, QR & Actions -->
             <aside class="profile-sidebar-card">
-                <div class="profile-photo-container mx-auto mb-40" onclick="document.getElementById('photoInput').click()" title="Change Profile Photo">
+                <div class="profile-photo-container mx-auto mb-20" onclick="document.getElementById('photoInput').click()" title="Change Profile Photo">
                     <?php 
                         $photoPath = !empty($studentInfo['profile_photo']) && $studentInfo['profile_photo'] !== 'default_profile.png' 
                             ? 'assets/img/profiles/' . $studentInfo['profile_photo'] 
@@ -100,9 +135,12 @@ $stats = $stats ?? [];
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
                     </div>
                 </div>
-
-                <div id="qrcode" class="qr-card-modern mb-25"></div>
-                <p class="text-white-40 fs-0-75 mb-30">Scan to verify digital student ID</p>
+                
+                <?php if (!empty($studentInfo['bio'])): ?>
+                    <div class="profile-bio-sidebar">
+                        <p class="bio-text-sidebar"><?php echo htmlspecialchars($studentInfo['bio']); ?></p>
+                    </div>
+                <?php endif; ?>
 
                 <div class="profile-actions-modern">
                     <button onclick="showEditModal()" class="btn-profile-action btn-edit-p">Edit Profile Details</button>
@@ -161,34 +199,6 @@ $stats = $stats ?? [];
                 </div>
             </div>
         </div>
-
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                const qrContainer = document.getElementById("qrcode");
-                const userId = "<?php echo $studentInfo['id'] ?? $_SESSION['user_id'] ?? ''; ?>";
-                
-                if (!userId) {
-                    qrContainer.style.background = "rgba(231, 76, 60, 0.1)";
-                    qrContainer.innerHTML = "<p style='color: #e74c3c; font-size: 0.8rem;'>Error: Profile ID not found</p>";
-                    return;
-                }
-
-                const protocol = window.location.protocol;
-                const host = window.location.host;
-                const pathParts = window.location.pathname.split('/');
-                const basePath = pathParts.slice(0, pathParts.indexOf('public') + 1).join('/');
-                const qrData = `${protocol}//${host}${basePath}/index.php?url=home/view_user&id=${userId}`;
-                
-                new QRCode(qrContainer, {
-                    text: qrData,
-                    width: 140,
-                    height: 140,
-                    colorDark : "#1b4332",
-                    colorLight : "#ffffff",
-                    correctLevel : QRCode.CorrectLevel.H
-                });
-            });
-        </script>
     </main>
 
     <script src="assets/js/student.js"></script>

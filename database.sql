@@ -31,6 +31,8 @@ INSERT IGNORE INTO system_auth_codes (role, passcode) VALUES ('OSAS', 'osas_admi
 
 CREATE TABLE IF NOT EXISTS guards (
     user_id INT PRIMARY KEY,
+    guard_rank VARCHAR(50) DEFAULT 'I',
+    schedule VARCHAR(100) DEFAULT 'Full Time',
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 

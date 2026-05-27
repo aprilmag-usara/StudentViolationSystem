@@ -18,7 +18,6 @@ $message = $message ?? '';
     <link rel="stylesheet" href="assets/css/dashboard.css">
     <link rel="stylesheet" href="assets/css/guard.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/html5-qrcode"></script>
 </head>
 <body>
    <div class="dashboard-bg-overlay"></div>
@@ -155,6 +154,7 @@ $message = $message ?? '';
         </div>
     </main>
 
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <script src="assets/js/guard.js"></script>
 </body>
 </html>

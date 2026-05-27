@@ -1,10 +1,12 @@
 <?php 
 /** @var string $displayName */
-/** @var mysqli_result $violations */
+/** @var mysqli_result $activeViolations */
+/** @var mysqli_result $completedViolations */
 /** @var int $unreadCount */
 /** @var array $notifications */
 $displayName = $displayName ?? 'Guard';
-$violations = $violations ?? null;
+$activeViolations = $activeViolations ?? null;
+$completedViolations = $completedViolations ?? null;
 $unreadCount = $unreadCount ?? 0;
 $notifications = $notifications ?? [];
 ?>
@@ -31,8 +33,11 @@ $notifications = $notifications ?? [];
             <p>Welcome, <?php echo htmlspecialchars($displayName); ?>. History of all violations recorded by CHMSU Security.</p>
         </div>
 
-        <div class="glass-card">
-            <?php if ($violations && $violations->num_rows > 0): ?>
+        <!-- Active Violations Section -->
+        <h2 class="record-section-title">Active Violations</h2>
+        
+        <?php if ($activeViolations && $activeViolations->num_rows > 0): ?>
+            <div class="glass-card">
                 <table class="records-table">
                     <thead>
                         <tr>
@@ -48,7 +53,7 @@ $notifications = $notifications ?? [];
                     <tbody>
                         <?php 
                         $highlightViolationId = $_GET['violation_id'] ?? null;
-                        while ($row = $violations->fetch_assoc()): 
+                        while ($row = $activeViolations->fetch_assoc()): 
                             $rowClass = ($highlightViolationId == $row['id']) ? 'highlight-row' : '';
                         ?>
                         <tr class="<?php echo $rowClass; ?>" id="violation-<?php echo $row['id']; ?>">
@@ -57,7 +62,7 @@ $notifications = $notifications ?? [];
                                         <?php 
                                             $avatar_url = "https://ui-avatars.com/api/?name=" . urlencode($row['student_name']) . "&background=1b4332&color=fff&size=35";
                                         ?>
-                                        <img src="assets/img/profiles/<?php echo $row['profile_photo']; ?>" onerror="this.src='<?php echo $avatar_url; ?>'" class="border-radius-50 border-sage-1" style="width: 35px; height: 35px;">
+                                        <img src="assets/img/profiles/<?php echo $row['profile_photo']; ?>" onerror="this.src='<?php echo $avatar_url; ?>'" class="border-radius-50 border-sage-1 object-cover" style="width: 35px; height: 35px;">
                                         <div class="flex-column">
                                             <span class="fw-500"><?php echo htmlspecialchars($row['student_name']); ?></span>
                                             <span class="fs-0-7 text-white-50"><?php echo htmlspecialchars($row['course']); ?></span>
@@ -92,13 +97,58 @@ $notifications = $notifications ?? [];
                     </table>
                 </div>
             <?php else: ?>
-                <div class="text-center py-50">
+                <div class="glass-card text-center py-50">
                     <div class="fs-3-0 mb-15">📋</div>
-                    <h3>No Records Found</h3>
-                    <p class="text-white-50">You haven't recorded any violations yet.</p>
+                    <h3>No Active Violations</h3>
+                    <p class="text-white-50">You don't have any active violations at the moment.</p>
                 </div>
             <?php endif; ?>
-        </div>
+
+        <!-- Completed History Section -->
+        <h2 class="record-section-title mt-60 opacity-60">Completed History</h2>
+        
+        <?php if ($completedViolations && $completedViolations->num_rows > 0): ?>
+            <div class="glass-card opacity-80">
+                <table class="records-table">
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>ID Number</th>
+                            <th>Type</th>
+                            <th>Violation Details</th>
+                            <th>Date & Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php while ($row = $completedViolations->fetch_assoc()): ?>
+                        <tr class="bg-white-02">
+                            <td>
+                                <div class="fw-500 text-white-70"><?php echo htmlspecialchars($row['student_name']); ?></div>
+                                <div class="fs-0-7 text-white-30"><?php echo htmlspecialchars($row['course']); ?></div>
+                            </td>
+                            <td class="font-monospace text-white-50"><?php echo htmlspecialchars($row['student_id_number']); ?></td>
+                            <td>
+                                <span class="fs-0-7 text-white-40 border-glass px-8 py-2 border-radius-5">
+                                    <?php echo $row['violation_type']; ?>
+                                </span>
+                            </td>
+                            <td class="text-white-60">
+                                <?php echo htmlspecialchars($row['description']); ?>
+                            </td>
+                            <td class="fs-0-8 text-white-40">
+                                <?php echo date('M d, Y', strtotime($row['violation_time'])); ?>
+                            </td>
+                        </tr>
+                        <?php endwhile; ?>
+                    </tbody>
+                </table>
+            </div>
+        <?php else: ?>
+            <div class="glass-card opacity-80 text-center py-50">
+                <p class="text-white-30">No completed history found.</p>
+            </div>
+        <?php endif; ?>
+
     </main>
 
     </body>

@@ -37,14 +37,49 @@ class User {
     }
 
     public function registerGuard($userId, $data) {
-        $stmt = $this->conn->prepare("INSERT INTO guards (user_id, guard_rank, schedule) VALUES (?, ?, ?)");
-        $stmt->bind_param("iss", $userId, $data['guard_rank'], $data['schedule']);
+        $stmt = $this->conn->prepare("DESCRIBE guards");
+        $stmt->execute();
+        $columns = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        $hasGuardRank = false;
+        $hasSchedule = false;
+        foreach ($columns as $col) {
+            if ($col['Field'] == 'guard_rank') $hasGuardRank = true;
+            if ($col['Field'] == 'schedule') $hasSchedule = true;
+        }
+        
+        if ($hasGuardRank && $hasSchedule) {
+            $stmt = $this->conn->prepare("INSERT INTO guards (user_id, guard_rank, schedule) VALUES (?, ?, ?)");
+            $stmt->bind_param("iss", $userId, $data['guard_rank'], $data['schedule']);
+        } else {
+            $stmt = $this->conn->prepare("INSERT INTO guards (user_id) VALUES (?)");
+            $stmt->bind_param("i", $userId);
+        }
         return $stmt->execute();
     }
 
-    public function updateProfile($userId, $username, $bio) {
-        $stmt = $this->conn->prepare("UPDATE users SET username = ?, bio = ? WHERE id = ?");
-        $stmt->bind_param("ssi", $username, $bio, $userId);
+    public function updateProfile($userId, $data) {
+        $username = $data['username'];
+        $fullName = $data['full_name'];
+        $bio = $data['bio'];
+        $stmt = $this->conn->prepare("UPDATE users SET username = ?, full_name = ?, bio = ? WHERE id = ?");
+        $stmt->bind_param("sssi", $username, $fullName, $bio, $userId);
+        $result = $stmt->execute();
+        
+        if (isset($data['course']) && isset($data['year_level']) && isset($data['section'])) {
+            $course = $data['course'];
+            $yearLevel = $data['year_level'];
+            $section = $data['section'];
+            $stmt2 = $this->conn->prepare("UPDATE students SET course = ?, year_level = ?, section = ? WHERE user_id = ?");
+            $stmt2->bind_param("sssi", $course, $yearLevel, $section, $userId);
+            $stmt2->execute();
+        }
+        
+        return $result;
+    }
+    
+    public function updateUserBasic($userId, $username, $fullName, $bio) {
+        $stmt = $this->conn->prepare("UPDATE users SET username = ?, full_name = ?, bio = ? WHERE id = ?");
+        $stmt->bind_param("sssi", $username, $fullName, $bio, $userId);
         return $stmt->execute();
     }
 
@@ -69,14 +104,44 @@ class User {
     }
 
     public function getGuardInfo($userId) {
-        $stmt = $this->conn->prepare("SELECT u.full_name FROM users u JOIN guards g ON u.id = g.user_id WHERE u.id = ?");
+        $stmt = $this->conn->prepare("SELECT u.* FROM users u WHERE u.id = ?");
         $stmt->bind_param("i", $userId);
         $stmt->execute();
         return $stmt->get_result()->fetch_assoc();
     }
 
+    public function updateGuardProfile($userId, $data) {
+        $username = $data['username'];
+        $fullName = $data['full_name'];
+        $bio = $data['bio'];
+        $guardRank = $data['guard_rank'] ?? 'I';
+        $schedule = $data['schedule'] ?? 'Full Time';
+        
+        $stmt = $this->conn->prepare("UPDATE users SET username = ?, full_name = ?, bio = ? WHERE id = ?");
+        $stmt->bind_param("sssi", $username, $fullName, $bio, $userId);
+        $result = $stmt->execute();
+        
+        $stmt2 = $this->conn->prepare("UPDATE guards SET guard_rank = ?, schedule = ? WHERE user_id = ?");
+        $stmt2->bind_param("ssi", $guardRank, $schedule, $userId);
+        $stmt2->execute();
+        
+        return $result;
+    }
+
+    public function addGuardToList($name) {
+        $stmt = $this->conn->prepare("INSERT INTO guard_list (name) VALUES (?) ON DUPLICATE KEY UPDATE status = 'active'");
+        $stmt->bind_param("s", $name);
+        return $stmt->execute();
+    }
+
+    public function deleteGuardFromList($id) {
+        $stmt = $this->conn->prepare("UPDATE guard_list SET status = 'inactive' WHERE id = ?");
+        $stmt->bind_param("i", $id);
+        return $stmt->execute();
+    }
+
     public function getGuardList() {
-        $stmt = $this->conn->prepare("SELECT name FROM guard_list WHERE status = 'active' ORDER BY name ASC");
+        $stmt = $this->conn->prepare("SELECT * FROM guard_list WHERE status = 'active' ORDER BY name ASC");
         if (!$stmt) {
             error_log("Database error (guard_list table might be missing): " . $this->conn->error);
             return null;
