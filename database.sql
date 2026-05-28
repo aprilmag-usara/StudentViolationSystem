@@ -1,5 +1,3 @@
-CREATE DATABASE IF NOT EXISTS student_violation_system;
-USE student_violation_system;
 
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,

@@ -2,9 +2,9 @@
 error_reporting(E_ALL & ~E_WARNING & ~E_NOTICE);
 
 define('DB_HOST', 'localhost');
-define('DB_USER', 'root');
-define('DB_PASS', '');
-define('DB_NAME', 'student_violation_system');
+define('DB_USER', 'SVS');
+define('DB_PASS', '151818_StudentViolationSystem');
+define('DB_NAME', 'u151818_SVS');
 
 $conn = @new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 
