@@ -684,6 +684,43 @@
 .col-8 { grid-column: span 8; }
 .col-4 { grid-column: span 4; }
 
+/* Responsive Styles for OSAS Pages */
+@media (max-width: 1200px) {
+  .osas-stats-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .col-8, .col-4 {
+    grid-column: span 12;
+  }
+}
+
+@media (max-width: 900px) {
+  .osas-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+  .student-grid {
+    grid-template-columns: 1fr;
+  }
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+}
+
+@media (max-width: 600px) {
+  .osas-stats-grid {
+    grid-template-columns: 1fr;
+  }
+  .stat-card {
+    padding: 20px;
+  }
+  .chart-card {
+    padding: 20px;
+  }
+}
+
 .chart-card {
     background: rgba(255, 255, 255, 0.04);
     backdrop-filter: blur(20px);

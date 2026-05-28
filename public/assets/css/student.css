@@ -378,6 +378,39 @@
 .mb-15 { margin-bottom: 12px; }
 .text-white-40 { color: rgba(255, 255, 255, 0.4); }
 .fw-300 { font-weight: 300; }
+
+/* Responsive Styles for Student Pages */
+@media (max-width: 900px) {
+  .welcome-header {
+    flex-direction: column;
+    gap: 20px;
+  }
+  .quick-stats {
+    width: 100%;
+  }
+  .violation-item-modern {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .v-status-section {
+    width: 100%;
+    margin-top: 15px;
+    justify-content: space-between;
+  }
+}
+
+@media (max-width: 600px) {
+  .welcome-header {
+    padding: 0 10px;
+  }
+  .stat-card-modern {
+    min-width: 0;
+  }
+  .v-meta {
+    flex-direction: column;
+    gap: 8px;
+  }
+}
 .fs-1-1 { font-size: 1.1rem; }
 .max-w-500 { max-width: 500px; }
 .max-w-600 { max-width: 600px; }

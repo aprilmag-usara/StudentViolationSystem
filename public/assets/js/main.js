@@ -9,6 +9,35 @@ function toggleBodyScroll(prevent) {
     }
 }
 
+// Hamburger Menu Toggle for Student/Guard Nav
+function toggleNavMenu() {
+    const hamburger = document.getElementById('hamburgerNav');
+    const navLinks = document.getElementById('navLinks');
+    if (hamburger && navLinks) {
+        navLinks.classList.toggle('active');
+    }
+}
+
+// Hamburger Menu Toggle for OSAS Sidebar
+function toggleOsasSidebar() {
+    const sidebar = document.getElementById('osasSidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    if (sidebar && overlay) {
+        sidebar.classList.toggle('open');
+        overlay.classList.toggle('active');
+    }
+}
+
+// Close OSAS Sidebar when clicking overlay
+function closeOsasSidebar() {
+    const sidebar = document.getElementById('osasSidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    if (sidebar && overlay) {
+        sidebar.classList.remove('open');
+        overlay.classList.remove('active');
+    }
+}
+
 window.showToast = function(title, message, type = 'success', duration = 3000) {
     let container = document.querySelector('.toast-container');
     if (!container) {
@@ -83,7 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const element = document.getElementById('violation-' + violationId);
             if (element) {
                 element.classList.add('highlight-record');
-                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                element.scrollIntoView({ behavior: 'smooth', block: 'center'});
                 
                 setTimeout(() => {
                     element.classList.remove('highlight-record');
@@ -93,6 +122,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     initToast();
+
+    // Hamburger menu event listeners
+    const hamburgerNav = document.getElementById('hamburgerNav');
+    if (hamburgerNav) {
+        hamburgerNav.addEventListener('click', toggleNavMenu);
+    }
+
+    const hamburgerOsas = document.getElementById('hamburgerOsas');
+    if (hamburgerOsas) {
+        hamburgerOsas.addEventListener('click', toggleOsasSidebar);
+    }
+
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+    if (sidebarOverlay) {
+        sidebarOverlay.addEventListener('click', closeOsasSidebar);
+    }
 });
 
 function initToast() {

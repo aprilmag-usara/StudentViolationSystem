@@ -5,7 +5,13 @@ $active = $active ?? '';
 
 <?php if ($role === 'osas'): ?>
     <!-- OSAS Sidebar Layout -->
-    <aside class="sidebar">
+    <div class="hamburger-menu hamburger-osas" id="hamburgerOsas">
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <aside class="sidebar" id="osasSidebar">
         <div class="logo-container">
             <img src="assets/img/logos2.png" alt="SVS Logo" class="logo-img">
             <span class="logo-text">Student Violation System</span>
@@ -51,7 +57,12 @@ $active = $active ?? '';
             <img src="assets/img/logos2.png" alt="SVS Logo" class="logo-img">
             <span class="logo-text">Student Violation System</span>
         </div>
-        <ul class="nav-links">
+        <div class="hamburger-menu" id="hamburgerNav">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+        <ul class="nav-links" id="navLinks">
             <li><a href="index.php?url=<?php echo $role; ?>/dashboard" class="<?php echo $active === 'home' ? 'active' : ''; ?>">Home Page</a></li>
             <li><a href="index.php?url=<?php echo $role; ?>/records" class="<?php echo $active === 'records' ? 'active' : ''; ?>">Records</a></li>
             <li>

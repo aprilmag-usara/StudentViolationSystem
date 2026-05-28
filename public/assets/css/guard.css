@@ -1098,6 +1098,26 @@
     border-bottom-right-radius: 16px;
 }
 
+/* Responsive Styles for Guard Pages */
+@media (max-width: 900px) {
+  .security-team-cards {
+    grid-template-columns: 1fr;
+  }
+  .scanner-area {
+    padding: 24px 16px;
+  }
+  .search-input {
+    padding: 14px 140px 14px 16px;
+  }
+}
+
+@media (max-width: 600px) {
+  .scanner-icon {
+    width: 80px;
+    height: 80px;
+  }
+}
+
 
 
 
