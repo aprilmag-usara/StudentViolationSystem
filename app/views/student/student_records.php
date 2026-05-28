@@ -70,7 +70,7 @@ $completedViolations = $completedViolations ?? null;
                                     </td>
                                     <td class="fs-0-9 text-white-70">
                                         <i class="fas fa-user-shield mr-5 text-sage-green fs-0-8"></i>
-                                        <?php echo htmlspecialchars($row['guard_name'] ?: 'System'); ?>
+                                        <?php echo htmlspecialchars($row['recorded_by_guard_name'] ?: $row['guard_name'] ?: 'System'); ?>
                                     </td>
                                     <td>
                                         <span class="status-pill-modern <?php echo $statusClass; ?>">
@@ -139,7 +139,7 @@ $completedViolations = $completedViolations ?? null;
                                     </td>
                                     <td class="fs-0-9 text-white-50">
                                         <i class="fas fa-user-shield mr-5 text-sage-green fs-0-8 opacity-60"></i>
-                                        <?php echo htmlspecialchars($row['recorded_by_guard_name'] ?: 'System'); ?>
+                                        <?php echo htmlspecialchars($row['recorded_by_guard_name'] ?: $row['guard_name'] ?: 'System'); ?>
                                     </td>
                                     <td>
                                         <span class="status-pill-modern <?php echo $statusClass; ?>">
@@ -229,7 +229,7 @@ $completedViolations = $completedViolations ?? null;
                 month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit'
             });
             
-            guard.textContent = v.guard_name || 'System Recorded';
+            guard.textContent = v.recorded_by_guard_name || v.guard_name || 'System Recorded';
             sanction.textContent = v.sanction || 'Pending Review by OSAS';
             
             status.textContent = v.status.charAt(0).toUpperCase() + v.status.slice(1).replace('_', ' ');

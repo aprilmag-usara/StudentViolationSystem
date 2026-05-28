@@ -62,6 +62,12 @@ $notifications = $notifications ?? [];
                         <div class="font-monospace text-sage-green fw-600"><?php echo htmlspecialchars($v['student_id_number']); ?></div>
                     </div>
 
+                    <!-- Guard in Charge -->
+                    <div>
+                        <div class="record-label">Guard in Charge</div>
+                        <div class="text-white-70"><?php echo htmlspecialchars($v['recorded_by_guard_name'] ?: $v['guard_name']); ?></div>
+                    </div>
+
                     <!-- Violation Type -->
                     <div>
                         <div class="record-label">Violation</div>

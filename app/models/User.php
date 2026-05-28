@@ -114,18 +114,10 @@ class User {
         $username = $data['username'];
         $fullName = $data['full_name'];
         $bio = $data['bio'];
-        $guardRank = $data['guard_rank'] ?? 'I';
-        $schedule = $data['schedule'] ?? 'Full Time';
         
         $stmt = $this->conn->prepare("UPDATE users SET username = ?, full_name = ?, bio = ? WHERE id = ?");
         $stmt->bind_param("sssi", $username, $fullName, $bio, $userId);
-        $result = $stmt->execute();
-        
-        $stmt2 = $this->conn->prepare("UPDATE guards SET guard_rank = ?, schedule = ? WHERE user_id = ?");
-        $stmt2->bind_param("ssi", $guardRank, $schedule, $userId);
-        $stmt2->execute();
-        
-        return $result;
+        return $stmt->execute();
     }
 
     public function addGuardToList($name) {

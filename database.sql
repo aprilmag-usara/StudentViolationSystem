@@ -1,4 +1,4 @@
-nCREATE DATABASE IF NOT EXISTS student_violation_system;
+CREATE DATABASE IF NOT EXISTS student_violation_system;
 USE student_violation_system;
 
 CREATE TABLE IF NOT EXISTS users (
@@ -19,20 +19,18 @@ CREATE TABLE IF NOT EXISTS students (
     year_level VARCHAR(10) NOT NULL,
     section VARCHAR(10) NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-);
+); 
 
 CREATE TABLE IF NOT EXISTS system_auth_codes (
     role ENUM('GUARD', 'OSAS') PRIMARY KEY,
     passcode VARCHAR(255) NOT NULL
 );
 
-INSERT IGNORE INTO system_auth_codes (role, passcode) VALUES ('GUARD', 'guard123');
-INSERT IGNORE INTO system_auth_codes (role, passcode) VALUES ('OSAS', 'osas_admin_123');
+INSERT IGNORE INTO system_auth_codes (role, passcode) VALUES ('GUARD', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi');
+INSERT IGNORE INTO system_auth_codes (role, passcode) VALUES ('OSAS', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi');
 
 CREATE TABLE IF NOT EXISTS guards (
     user_id INT PRIMARY KEY,
-    guard_rank VARCHAR(50) DEFAULT 'I',
-    schedule VARCHAR(100) DEFAULT 'Full Time',
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
@@ -43,18 +41,18 @@ CREATE TABLE IF NOT EXISTS guard_list (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-INSERT IGNORE INTO guard_list (name) VALUES ('Juan de la Cruz'), ('Christine Reyes'), ('John Pineda');
+INSERT IGNORE INTO guard_list (name) VALUES ('Juan de la Cruz'), ('Christine Reyes'), ('John Pineda'), ('Joseph Rodriguez'), ('Roberto Pablo Jr');
 
 CREATE TABLE IF NOT EXISTS violations (
     id INT AUTO_INCREMENT PRIMARY KEY,
     student_user_id INT NOT NULL,
     guard_user_id INT NOT NULL,
-    recorded_by_guard_name VARCHAR(100), -- The specific guard name from guard_list
+    recorded_by_guard_name VARCHAR(100),
     violation_type ENUM('Minor', 'Major') NOT NULL,
     description TEXT NOT NULL,
-    sanction TEXT, -- The assigned sanction from OSAS
+    sanction TEXT,
     violation_time DATETIME NOT NULL,
-    status ENUM('pending', 'in_progress', 'completed', 'warning_sent', 'parent_called', 'dropped') DEFAULT 'pending',
+    status ENUM('pending', 'received', 'in_progress', 'completed', 'warning_sent', 'parent_called', 'dropped') DEFAULT 'pending',
     sanction_deadline DATETIME,
     last_action_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     escalation_level INT DEFAULT 0,

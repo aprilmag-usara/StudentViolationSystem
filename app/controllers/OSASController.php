@@ -401,7 +401,7 @@ class OSASController extends BaseController {
 
         // Fetch all active/uncompleted violations
         $activeViolations = $this->db->query("
-            SELECT v.*, u.full_name as student_name, s.student_id_number, s.course, s.year_level, s.section, u.profile_photo, g.full_name as guard_name
+            SELECT v.*, u.full_name as student_name, s.student_id_number, s.course, s.year_level, s.section, u.profile_photo, g.full_name as guard_name, v.recorded_by_guard_name
             FROM violations v 
             JOIN users u ON v.student_user_id = u.id 
             JOIN students s ON u.id = s.user_id 
@@ -435,8 +435,9 @@ class OSASController extends BaseController {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             if (isset($_POST['update_profile'])) {
                 $username = $_POST['username'];
+                $fullName = $_POST['full_name'];
                 $bio = $_POST['bio'];
-                if ($this->userModel->updateProfile($userId, $username, $bio)) {
+                if ($this->userModel->updateUserBasic($userId, $username, $fullName, $bio)) {
                     $_SESSION['username'] = $username;
                     $message = "Profile updated successfully!";
                 } else {

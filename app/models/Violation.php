@@ -35,7 +35,7 @@ class Violation {
     }
 
     public function findByGuard($guardId) {
-        $stmt = $this->conn->prepare("SELECT v.*, u.full_name as student_name, u.profile_photo, s.student_id_number, s.course 
+        $stmt = $this->conn->prepare("SELECT v.*, u.full_name as student_name, u.profile_photo, s.student_id_number, s.course, v.recorded_by_guard_name 
                                     FROM violations v 
                                     JOIN users u ON v.student_user_id = u.id 
                                     JOIN students s ON u.id = s.user_id 
@@ -58,7 +58,7 @@ class Violation {
     }
 
     public function findByStudent($userId, $limit = null) {
-        $sql = "SELECT v.*, u.full_name as guard_name FROM violations v JOIN users u ON v.guard_user_id = u.id WHERE v.student_user_id = ? ORDER BY v.created_at DESC";
+        $sql = "SELECT v.*, u.full_name as guard_name, v.recorded_by_guard_name FROM violations v JOIN users u ON v.guard_user_id = u.id WHERE v.student_user_id = ? ORDER BY v.created_at DESC";
         if ($limit) {
             $sql .= " LIMIT ?";
         }
@@ -73,7 +73,7 @@ class Violation {
     }
 
     public function getCompletedViolations() {
-        $sql = "SELECT v.*, v.last_action_date as updated_at, u.full_name as student_name, s.student_id_number, s.course, s.year_level, s.section, u.profile_photo, g.full_name as guard_name
+        $sql = "SELECT v.*, v.last_action_date as updated_at, u.full_name as student_name, s.student_id_number, s.course, s.year_level, s.section, u.profile_photo, g.full_name as guard_name, v.recorded_by_guard_name
                 FROM violations v 
                 JOIN users u ON v.student_user_id = u.id 
                 JOIN students s ON u.id = s.user_id 
@@ -84,7 +84,7 @@ class Violation {
     }
 
     public function findActiveByGuard($guardId) {
-        $stmt = $this->conn->prepare("SELECT v.*, u.full_name as student_name, u.profile_photo, s.student_id_number, s.course 
+        $stmt = $this->conn->prepare("SELECT v.*, u.full_name as student_name, u.profile_photo, s.student_id_number, s.course, v.recorded_by_guard_name 
                                     FROM violations v 
                                     JOIN users u ON v.student_user_id = u.id 
                                     JOIN students s ON u.id = s.user_id 
@@ -100,7 +100,7 @@ class Violation {
     }
 
     public function findCompletedByGuard($guardId) {
-        $stmt = $this->conn->prepare("SELECT v.*, u.full_name as student_name, u.profile_photo, s.student_id_number, s.course 
+        $stmt = $this->conn->prepare("SELECT v.*, u.full_name as student_name, u.profile_photo, s.student_id_number, s.course, v.recorded_by_guard_name 
                                     FROM violations v 
                                     JOIN users u ON v.student_user_id = u.id 
                                     JOIN students s ON u.id = s.user_id 
@@ -116,7 +116,7 @@ class Violation {
     }
 
     public function findActiveByStudent($userId, $limit = null) {
-        $sql = "SELECT v.*, u.full_name as guard_name FROM violations v JOIN users u ON v.guard_user_id = u.id WHERE v.student_user_id = ? AND v.status != 'completed' ORDER BY v.created_at DESC";
+        $sql = "SELECT v.*, u.full_name as guard_name, v.recorded_by_guard_name FROM violations v JOIN users u ON v.guard_user_id = u.id WHERE v.student_user_id = ? AND v.status != 'completed' ORDER BY v.created_at DESC";
         if ($limit) {
             $sql .= " LIMIT ?";
         }
@@ -131,7 +131,7 @@ class Violation {
     }
 
     public function findCompletedByStudent($userId, $limit = null) {
-        $sql = "SELECT v.*, u.full_name as guard_name FROM violations v JOIN users u ON v.guard_user_id = u.id WHERE v.student_user_id = ? AND v.status = 'completed' ORDER BY v.created_at DESC";
+        $sql = "SELECT v.*, u.full_name as guard_name, v.recorded_by_guard_name FROM violations v JOIN users u ON v.guard_user_id = u.id WHERE v.student_user_id = ? AND v.status = 'completed' ORDER BY v.created_at DESC";
         if ($limit) {
             $sql .= " LIMIT ?";
         }
@@ -146,7 +146,7 @@ class Violation {
     }
     
     public function findSanctionedByStudent($userId, $limit = null) {
-        $sql = "SELECT v.*, u.full_name as guard_name FROM violations v JOIN users u ON v.guard_user_id = u.id WHERE v.student_user_id = ? ORDER BY v.created_at DESC";
+        $sql = "SELECT v.*, u.full_name as guard_name, v.recorded_by_guard_name FROM violations v JOIN users u ON v.guard_user_id = u.id WHERE v.student_user_id = ? ORDER BY v.created_at DESC";
         if ($limit) {
             $sql .= " LIMIT ?";
         }
@@ -161,14 +161,14 @@ class Violation {
     }
     
     public function findActiveSanctionedByStudent($userId) {
-        $stmt = $this->conn->prepare("SELECT v.*, u.full_name as guard_name FROM violations v JOIN users u ON v.guard_user_id = u.id WHERE v.student_user_id = ? AND v.status NOT IN ('completed', 'dropped') ORDER BY v.created_at DESC");
+        $stmt = $this->conn->prepare("SELECT v.*, u.full_name as guard_name, v.recorded_by_guard_name FROM violations v JOIN users u ON v.guard_user_id = u.id WHERE v.student_user_id = ? AND v.status NOT IN ('completed', 'dropped') ORDER BY v.created_at DESC");
         $stmt->bind_param("i", $userId);
         $stmt->execute();
         return $stmt->get_result();
     }
     
     public function findCompletedSanctionedByStudent($userId) {
-        $stmt = $this->conn->prepare("SELECT v.*, u.full_name as guard_name FROM violations v JOIN users u ON v.guard_user_id = u.id WHERE v.student_user_id = ? AND v.status IN ('completed', 'dropped') ORDER BY v.created_at DESC");
+        $stmt = $this->conn->prepare("SELECT v.*, u.full_name as guard_name, v.recorded_by_guard_name FROM violations v JOIN users u ON v.guard_user_id = u.id WHERE v.student_user_id = ? AND v.status IN ('completed', 'dropped') ORDER BY v.created_at DESC");
         $stmt->bind_param("i", $userId);
         $stmt->execute();
         return $stmt->get_result();
@@ -185,6 +185,10 @@ class Violation {
         $stmt->bind_param("s", $likeName);
         $stmt->execute();
         return $stmt->get_result();
+    }
+    
+    public function getStudentViolations($userId) {
+        return $this->findByStudent($userId);
     }
 }
 ?>

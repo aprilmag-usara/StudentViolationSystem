@@ -98,6 +98,7 @@ $notifications = $notifications ?? [];
                 </div>
             <?php else: ?>
                 <div class="glass-card text-center py-50">
+                    <div class="fs-3-0 mb-15">📋</div>
                     <h3>No Active Violations</h3>
                     <p class="text-white-50">You don't have any active violations at the moment.</p>
                 </div>

@@ -67,7 +67,7 @@ $active = $active ?? '';
         </ul>
     </nav>
 <?php endif; ?>
-
+ 
 <!-- Logout Modal -->
 <div id="logoutModal" class="modal-overlay">
     <div class="modal-content">

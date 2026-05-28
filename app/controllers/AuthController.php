@@ -47,7 +47,7 @@ class AuthController extends BaseController {
                 if (empty($_POST['auth_pass'])) {
                     $authorized = false;
                     $message = "Please enter the " . ($role == 'GUARD' ? 'Guard' : 'OSAS') . " Authorization Passcode.";
-                } elseif ($_POST['auth_pass'] != $correctPasscode) {
+                } elseif (!password_verify($_POST['auth_pass'], $correctPasscode)) {
                     $authorized = false;
                     $message = "Invalid " . ($role == 'GUARD' ? 'Guard' : 'OSAS') . " Authorization Passcode.";
                 }
